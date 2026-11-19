@@ -1,11 +1,14 @@
-.PHONY: dev test
+.PHONY: build dev test
 
 PORT ?= 8000
 
-# Serve the site locally. index.html loads etf.json, so it does not work from a file:// path.
+# Write _site/index.html: index.html with etf.json baked in.
+build:
+	node build.mjs
+
+# Build, serve _site, and rebuild when index.html or etf.json changes.
 dev:
-	@echo "http://localhost:$(PORT)/"
-	python3 -m http.server $(PORT)
+	node build.mjs --dev $(PORT)
 
 # Run the tests. CI runs this too.
 test:

@@ -42,7 +42,6 @@
       color: var(--color-text-primary);
     }
     #root { max-width: 1300px; margin: 0 auto; padding: 24px 16px 48px; }
-    .boot { padding: 48px 0; text-align: center; color: var(--color-text-secondary); }
     .brand-icon { font-size: 28px; color: var(--color-icon-accent); }
     .closed, .closed a { color: var(--color-text-secondary); }
     .chips { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
@@ -96,7 +95,9 @@
   </style>
 </head>
 <body>
-  <div id="root"><div class="boot">Loading the ETF list…</div></div>
+  <div id="root"></div>
+  <!-- `make build` writes etf.json into this block. -->
+  <script id="etfs" type="application/json">[]</script>
 
   <!-- Pure logic. No DOM access here: tests/ loads this block and runs it in Node. -->
   <script id="logic">
@@ -648,14 +649,8 @@
         <//>`;
     }
 
-    const root = createRoot(document.getElementById('root'));
-    try {
-      const response = await fetch('etf.json');
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      root.render(html`<${App} etfs=${PA.withSymbols(await response.json())} />`);
-    } catch (error) {
-      root.render(html`<div className="boot">Could not load etf.json (${String(error.message)}).</div>`);
-    }
+    const etfs = PA.withSymbols(JSON.parse(document.getElementById('etfs').textContent));
+    createRoot(document.getElementById('root')).render(html`<${App} etfs=${etfs} />`);
   </script>
 </body>
 </html>

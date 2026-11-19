@@ -5,7 +5,7 @@ description: Make sure that each entry in etf.json is correct. Finds funds that 
 
 # Update the ETF list
 
-`etf.json` is the only data file. `index.html` reads it and changes nothing in it.
+`etf.json` is the only data file. `make build` bakes it into the page; the page changes nothing in it.
 Your task is to make `etf.json` agree with the facts of today.
 
 ## Rules for etf.json

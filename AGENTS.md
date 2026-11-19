@@ -5,13 +5,18 @@ Read this before you change `index.html` or `etf.json`.
 
 ## What the repo is
 
-- `etf.json` is the data. `index.html` is the only page and reads it. Nothing else holds state.
-- No build step. `index.html` loads Astryx, React, htm, Chart.js and Font Awesome from CDNs through an import map.
+- `etf.json` is the data. `index.html` is the only page. Nothing else holds state.
+- `make build` (`build.mjs`) writes `_site/index.html`: `index.html` with `etf.json` baked into its
+  `<script id="etfs">` block. The page does not fetch its data, so it has no loading state.
+  Opened directly, `index.html` shows an empty list; always look at the built page.
+- There is no other build step. `index.html` loads Astryx, React, htm, Chart.js and Font Awesome from CDNs
+  through an import map.
 - `tests/etf.test.mjs` checks the data rules and the page logic. Run `make test`.
-- `make dev` serves the site at http://localhost:8000/ (`make dev PORT=8777` for a different port).
+- `make dev` builds, serves `_site` at http://localhost:8000/ (`make dev PORT=8777` for a different port)
+  and rebuilds when `index.html` or `etf.json` changes. Reload the browser to see a change.
 - `.claude/skills/update-etfs/` keeps the data correct. **The rules for `etf.json` live in its `SKILL.md`.**
   Read that file before you edit the data; this file does not repeat them.
-- `.github/workflows/pages.yml` runs the tests and publishes `index.html` and `etf.json`.
+- `.github/workflows/pages.yml` runs the tests, then `make build`, and publishes `_site`.
 
 ## Before you say a change is done
 
@@ -103,8 +108,7 @@ Read this before you change `index.html` or `etf.json`.
   asked for purple managed futures. Do what was said and name the conflict in the reply; do not pick silently.
 - **State an assumption when you act on it**, for example a two-handle range slider when "a slider" was asked for,
   or `main` when the owner said "master".
-- **The owner reviews from a live page.** Serve the repo (`make dev`) and keep it running;
-  `index.html` cannot load `etf.json` from a `file://` path. Their screenshots can be from before the last push,
+- **The owner reviews from a live page.** Run `make dev` and keep it running. Their screenshots can be from before the last push,
   so check which version a screenshot shows before you "fix" something that is already fixed.
 - **Small commits, pushed to the PR after each round.** Update the PR body only; never change its title.
 

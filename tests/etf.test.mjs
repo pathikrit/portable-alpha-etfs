@@ -3,6 +3,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
+import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 
 const root = new URL('..', import.meta.url);
 const etfs = JSON.parse(readFileSync(new URL('etf.json', root), 'utf8'));
@@ -145,4 +147,12 @@ test('the portfolio survives the URL', () => {
   const text = 'RSSX:40,RSBT:30,AVUV:30';
   assert.equal(PA.encodePortfolio(PA.decodePortfolio(text)), text);
   assert.equal(PA.decodePortfolio(''), null);
+});
+
+test('the build writes etf.json into the page', () => {
+  execFileSync(process.execPath, [fileURLToPath(new URL('build.mjs', root))]);
+  const built = readFileSync(new URL('_site/index.html', root), 'utf8');
+  const baked = built.match(/<script id="etfs" type="application\/json">([\s\S]*?)<\/script>/)[1];
+  assert.equal(JSON.stringify(JSON.parse(baked)), JSON.stringify(etfs));
+  assert.ok(!/fetch\(/.test(built), 'the page does not fetch its data');
 });

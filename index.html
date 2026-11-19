@@ -49,7 +49,7 @@
     .etfs.one-line td { white-space: nowrap; }
     .etfs.one-line .chips { flex-wrap: nowrap; }
     .plus { color: var(--color-text-secondary); font-size: 12px; }
-    .holding { display: grid; grid-template-columns: 120px 96px auto; gap: 8px; align-items: center; justify-content: start; }
+    .holding { display: grid; grid-template-columns: 108px 88px auto; gap: 8px; align-items: center; justify-content: start; }
     .builder { display: grid; grid-template-columns: minmax(0, 400px) minmax(0, 1fr); gap: 40px; align-items: center; }
     .donut { position: relative; width: min(100%, 400px); aspect-ratio: 1; justify-self: center; }
     .donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
@@ -397,14 +397,14 @@
       return html`
         <${Card} padding=${5}>
           <${VStack} gap=${4}>
-            <${Heading} level=${2}><${Fa} name="chart-pie" /> Portfolio builder<//>
+            <${Heading} level=${2}><${Fa} name="chart-pie" /> Stack Builder<//>
             <div className="builder">
               <${VStack} gap=${3}>
                 <${VStack} gap=${2}>
                   ${holdings.map((h) => html`
                     <div className="holding" key=${h.id}>
                       <${Typeahead} label="Ticker" isLabelHidden size="sm" placeholder="Ticker"
-                        searchSource=${source} hasEntriesOnFocus hasClear
+                        searchSource=${source} hasEntriesOnFocus
                         value=${h.ticker ? { id: h.ticker, label: h.ticker, name: '' } : null}
                         onChange=${(item) => update(h.id, { ticker: item ? item.id : '' })}
                         renderItem=${(item) => html`<span><strong>${item.label}</strong> <${Text} color="secondary" type="supporting">${item.name}<//></span>`} />
@@ -414,6 +414,12 @@
                         icon=${html`<${Fa} name="trash-can" />`} onClick=${() => setHoldings(holdings.filter((x) => x.id !== h.id))} />
                     </div>`)}
                 <//>
+                <${HStack} gap=${2}>
+                  <${Button} size="sm" label="Add holding" icon=${html`<${Fa} name="plus" />`}
+                    onClick=${() => setHoldings([...holdings, { id: nextId++, ticker: '', weight: 0 }])} />
+                  <${Button} size="sm" variant="ghost" label="Reset" icon=${html`<${Fa} name="rotate-left" />`}
+                    onClick=${() => setHoldings(withIds(PA.DEFAULT_PORTFOLIO))} />
+                <//>
                 ${!weightOk && html`<div><${Badge} variant="error" icon=${html`<${Fa} name="triangle-exclamation" />`}
                   label=${`Weights sum to ${PA.formatPct(result.weight)}`} /></div>`}
                 ${result.rows.length > 0 && html`
@@ -422,12 +428,6 @@
               <//>
               ${result.rows.length > 0 && html`<${Donut} result=${result} />`}
             </div>
-            <${HStack} gap=${2}>
-              <${Button} size="sm" label="Add holding" icon=${html`<${Fa} name="plus" />`}
-                onClick=${() => setHoldings([...holdings, { id: nextId++, ticker: '', weight: 0 }])} />
-              <${Button} size="sm" variant="ghost" label="Reset" icon=${html`<${Fa} name="rotate-left" />`}
-                onClick=${() => setHoldings(withIds(PA.DEFAULT_PORTFOLIO))} />
-            <//>
           <//>
         <//>`;
     }

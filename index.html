@@ -92,6 +92,27 @@
       .builder { grid-template-columns: minmax(0, 1fr); gap: 24px; }
       .builder > * + * { border-inline-start: 0; padding-inline-start: 0; border-top: 1px solid var(--color-border); padding-top: 24px; }
     }
+    /* Phone: each ETF row becomes a small block (ticker and leverage, then name, then allocation), so nothing scrolls sideways. */
+    @media (max-width: 700px) {
+      #root { padding: 16px 12px 40px; }
+      .donut-value { font-size: 40px; }
+      .switches { gap: 12px 20px; }
+      .leverage { flex: 1 1 100%; margin: 0 12px 18px 0; }
+      .leverage .astryx-field, .leverage .astryx-slider { flex: 1 1 auto; width: auto !important; min-width: 0; }
+      .chip { font-size: 13px; line-height: 1.9; padding: 0 10px; }
+      table.etfs { display: block; min-width: 0 !important; }
+      .etfs thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+      .etfs tbody { display: block; }
+      .etfs tbody tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; padding: 10px 20px; border-bottom: 1px solid var(--color-border); }
+      .etfs tbody tr:has(> td[colspan]) { display: block; padding: 0; }
+      .etfs tbody td[colspan] { display: block; }
+      .etfs td.astryx-table-cell { display: block; width: auto; min-width: 0; max-width: none; height: auto; padding: 0; border: 0; }
+      .etfs td.astryx-table-cell:nth-child(1) { display: none; }
+      .etfs td.astryx-table-cell:nth-child(2) { grid-area: 1 / 1; }
+      .etfs td.astryx-table-cell:nth-child(5) { grid-area: 1 / 2; font-weight: 600; }
+      .etfs td.astryx-table-cell:nth-child(3) { grid-area: 2 / 1 / auto / -1; }
+      .etfs td.astryx-table-cell:nth-child(4) { grid-area: 3 / 1 / auto / -1; padding-top: 2px; }
+    }
   </style>
 </head>
 <body>

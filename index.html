@@ -546,7 +546,11 @@
       return html`
         <${Card} padding=${5}>
           <${VStack} gap=${4}>
-            <${Heading} level=${2}><${Fa} name="layer-group" /> ETFs<//>
+            <${HStack} hAlign="between" vAlign="center" gap=${3}>
+              <${Heading} level=${2}><${Fa} name="layer-group" /> ETFs<//>
+              <${Button} label="Suggest an edit" icon=${html`<${Fa} name="pen-to-square" />`}
+                href=${`${REPO}/edit/main/etf.json`} target="_blank" rel="noopener" />
+            <//>
             <div className="toolbar">
               <${TextInput} type="search" label="Search" isLabelHidden hasClear startIcon=${SearchIcon}
                 placeholder="Search" value=${query} onChange=${setQuery} />
@@ -580,8 +584,6 @@
               <//>
             <//>
             <${HStack} gap=${1}>
-              <${IconButton} variant="ghost" label="Edit ETFs" tooltip="Edit ETFs"
-                icon=${html`<${Fa} name="code-pull-request" />`} href=${`${REPO}/edit/main/etf.json`} target="_blank" rel="noopener" />
               <${ThemeButton} />
             <//>
           <//>

@@ -405,6 +405,13 @@
           return hits.some((i) => i.id === q) ? hits : [...hits, { id: q, label: q, name: 'Other ticker (counted as 100% itself)' }];
         },
       }), [items]);
+      // Text that is typed but not picked from the menu still counts: it becomes the ticker when the field loses focus.
+      const typed = useRef({});
+      const commitTyped = (id) => {
+        const ticker = (typed.current[id] || '').trim().toUpperCase().replace(/[^A-Z0-9.\-]/g, '');
+        delete typed.current[id];
+        if (ticker) update(id, { ticker });
+      };
       const update = (id, patch) => setHoldings(holdings.map((h) => (h.id === id ? { ...h, ...patch } : h)));
       const result = useMemo(() => PA.exposures(holdings, etfs), [holdings, etfs]);
       const weightOk = Math.abs(result.weight - 100) < 0.05;
@@ -424,7 +431,9 @@
                       <${Typeahead} label="Ticker" isLabelHidden size="sm" placeholder="Ticker"
                         searchSource=${source} hasEntriesOnFocus
                         value=${h.ticker ? { id: h.ticker, label: h.ticker, name: '' } : null}
-                        onChange=${(item) => update(h.id, { ticker: item ? item.id : '' })}
+                        onChange=${(item) => { delete typed.current[h.id]; update(h.id, { ticker: item ? item.id : '' }); }}
+                        onChangeQuery=${(text) => { typed.current[h.id] = text; }}
+                        onBlur=${() => commitTyped(h.id)}
                         renderItem=${(item) => html`<span><strong>${item.label}</strong> <${Text} color="secondary" type="supporting">${item.name}<//></span>`} />
                       <${NumberInput} label="Weight" isLabelHidden size="sm" units="%" min=${0} max=${1000} step=${5}
                         value=${h.weight} onChange=${(weight) => update(h.id, { weight })} />
@@ -437,8 +446,10 @@
                     <${Button} size="sm" variant="primary" label="Add holding" icon=${html`<${Fa} name="plus" />`}
                       onClick=${() => setHoldings([...holdings, { id: nextId++, ticker: '', weight: 0 }])} />
                   </span>
-                  <${Button} size="sm" variant="destructive" label="Reset" icon=${html`<${Fa} name="rotate-left" />`}
-                    isDisabled=${isDefault} onClick=${() => setHoldings(withIds(PA.DEFAULT_PORTFOLIO))} />
+                  <span className="red">
+                    <${Button} size="sm" variant="primary" label="Reset" icon=${html`<${Fa} name="rotate-left" />`}
+                      isDisabled=${isDefault} onClick=${() => setHoldings(withIds(PA.DEFAULT_PORTFOLIO))} />
+                  </span>
                 <//>
                 ${!weightOk && !overweight && html`<div><${Badge} variant="error" icon=${html`<${Fa} name="triangle-exclamation" />`}
                   label=${`Weights sum to ${PA.formatPct(result.weight)}`} /></div>`}

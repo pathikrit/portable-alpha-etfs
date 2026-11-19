@@ -41,13 +41,15 @@
       background: var(--color-background-body);
       color: var(--color-text-primary);
     }
-    #root { max-width: 1100px; margin: 0 auto; padding: 24px 16px 48px; }
+    #root { max-width: 1320px; margin: 0 auto; padding: 24px 16px 48px; }
     .boot { padding: 48px 0; text-align: center; color: var(--color-text-secondary); }
     .brand-icon { font-size: 28px; color: var(--color-icon-accent); }
     .closed, .closed a { text-decoration: line-through; color: var(--color-text-secondary); }
     .chips { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+    .etfs td { white-space: nowrap; }
+    .etfs .chips { flex-wrap: nowrap; }
     .plus { color: var(--color-text-secondary); font-size: 12px; }
-    .holding { display: grid; grid-template-columns: 170px 110px auto; gap: 8px; align-items: center; justify-content: start; }
+    .holding { display: grid; grid-template-columns: 120px 96px auto; gap: 8px; align-items: center; justify-content: start; }
     .builder { display: grid; grid-template-columns: minmax(0, 400px) minmax(0, 1fr); gap: 40px; align-items: center; }
     .donut { position: relative; width: min(100%, 400px); aspect-ratio: 1; justify-self: center; }
     .donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
@@ -391,15 +393,7 @@
       return html`
         <${Card} padding=${5}>
           <${VStack} gap=${4}>
-            <${HStack} hAlign="between" vAlign="center" wrap="wrap" gap=${2}>
-              <${Heading} level=${2}><${Fa} name="chart-pie" /> Portfolio builder<//>
-              <${HStack} gap=${2}>
-                <${Button} size="sm" variant="ghost" label="Reset" icon=${html`<${Fa} name="rotate-left" />`}
-                  onClick=${() => setHoldings(withIds(PA.DEFAULT_PORTFOLIO))} />
-                <${Button} size="sm" label="Add holding" icon=${html`<${Fa} name="plus" />`}
-                  onClick=${() => setHoldings([...holdings, { id: nextId++, ticker: '', weight: 0 }])} />
-              <//>
-            <//>
+            <${Heading} level=${2}><${Fa} name="chart-pie" /> Portfolio builder<//>
             <div className="builder">
               <${VStack} gap=${3}>
                 <${VStack} gap=${2}>
@@ -424,6 +418,12 @@
               <//>
               ${result.rows.length > 0 && html`<${Donut} result=${result} />`}
             </div>
+            <${HStack} gap=${2}>
+              <${Button} size="sm" label="Add holding" icon=${html`<${Fa} name="plus" />`}
+                onClick=${() => setHoldings([...holdings, { id: nextId++, ticker: '', weight: 0 }])} />
+              <${Button} size="sm" variant="ghost" label="Reset" icon=${html`<${Fa} name="rotate-left" />`}
+                onClick=${() => setHoldings(withIds(PA.DEFAULT_PORTFOLIO))} />
+            <//>
           <//>
         <//>`;
     }
@@ -464,7 +464,7 @@
           renderCell: (e) => html`<${Text} color="secondary"><span className="num">${e.n}</span><//>`,
         },
         {
-          key: 'ticker', header: 'Ticker', width: { type: 'pixel', value: 170 },
+          key: 'ticker', header: 'Ticker', width: { type: 'pixel', value: 140 },
           renderCell: (e) => html`
             <span className="chips">
               <span className=${e.closed ? 'closed' : ''}>
@@ -475,7 +475,7 @@
             </span>`,
         },
         {
-          key: 'name', header: 'Name', width: { type: 'proportional', value: 3, minWidth: 220 },
+          key: 'name', header: 'Name', width: { type: 'pixel', value: 360 },
           renderCell: (e) => html`
             <span className=${e.closed ? 'closed' : ''}>
               <${Link} href=${e.url} target="_blank" rel="noopener" color="primary" hasUnderline
@@ -483,7 +483,7 @@
             </span>`,
         },
         {
-          key: 'allocation', header: 'Allocation', width: { type: 'proportional', value: 4, minWidth: 260 },
+          key: 'allocation', header: 'Allocation', width: { type: 'proportional', value: 1, minWidth: 530 },
           renderCell: (e) => html`
             <span className="chips">
               ${e.allocation.map((a, i) => html`<${React.Fragment} key=${a.what}>
@@ -492,7 +492,7 @@
             </span>`,
         },
         {
-          key: 'leverage', header: 'Leverage', align: 'end', width: { type: 'pixel', value: 110 },
+          key: 'leverage', header: 'Leverage', align: 'end', width: { type: 'pixel', value: 90 },
           renderCell: (e) => html`<span className="num">${e.leverage.toFixed(2)}x</span>`,
         },
       ], []);
@@ -509,7 +509,7 @@
                 <${Switch} label="Show closed" value=${showClosed} onChange=${setShowClosed} />
               </div>
             </div>
-            <${Table} data=${grouped.data} idKey=${grouped.idKey} columns=${columns} density="compact" hasHover
+            <${Table} className="etfs" data=${grouped.data} idKey=${grouped.idKey} columns=${columns} density="compact" hasHover
               plugins=${{ group: grouped.plugin }} />
           <//>
         <//>`;

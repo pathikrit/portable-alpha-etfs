@@ -48,6 +48,8 @@
     .chips { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
     .etfs.one-line td { white-space: nowrap; }
     .etfs.one-line .chips { flex-wrap: nowrap; }
+    .etfs td:nth-child(2) .chips { flex-wrap: nowrap; white-space: nowrap; }
+    .etfs td:nth-child(2) .chips > * { flex-shrink: 0; }
     .plus { color: var(--color-text-secondary); font-size: 12px; }
     .holding { display: grid; grid-template-columns: 108px 88px auto; gap: 8px; align-items: center; justify-content: start; }
     .builder { display: grid; grid-template-columns: minmax(0, 400px) minmax(0, 1fr); gap: 40px; align-items: center; }
@@ -433,7 +435,7 @@
     }
 
     // The table needs this much page width to show each row on one line with no horizontal scroll.
-    const ONE_LINE = '(min-width: 1300px)';
+    const ONE_LINE = '(min-width: 1325px)';
     function useMedia(query) {
       const [on, setOn] = useState(() => matchMedia(query).matches);
       useEffect(() => {
@@ -482,7 +484,7 @@
           renderCell: (e) => html`<${Text} color="secondary"><span className="num">${e.n}</span><//>`,
         },
         {
-          key: 'ticker', header: 'Ticker', width: { type: 'pixel', value: 165 },
+          key: 'ticker', header: 'Ticker', width: { type: 'pixel', value: 190 },
           renderCell: (e) => html`
             <span className="chips">
               <span className=${e.closed ? 'closed' : ''}>

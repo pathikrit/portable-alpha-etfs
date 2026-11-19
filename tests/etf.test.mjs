@@ -98,6 +98,16 @@ test('portfolio exposure: 40% RSSX + 30% RSBT + 30% AVUV', () => {
   assert.ok(Math.abs(normalized - 100) < 1e-9);
 });
 
+test('a fund that has no ticker gets a TBD symbol that works in a portfolio', () => {
+  const list = PA.withSymbols([
+    { ticker: 'AAA', allocation: [{ pct: 100, what: 'SPY' }, { pct: 100, what: 'MF' }] },
+    { ticker: null, allocation: [{ pct: 100, what: 'VT' }, { pct: 100, what: 'Bonds' }] },
+  ]);
+  assert.deepEqual(list.map((etf) => etf.symbol), ['AAA', 'TBD-2']);
+  const result = PA.exposures(PA.decodePortfolio('TBD-2:50'), list);
+  assert.deepEqual(Object.fromEntries(result.rows.map((row) => [row.what, row.pct])), { VT: 50, Bonds: 50 });
+});
+
 test('the default portfolio uses funds that are in etf.json', () => {
   const tickers = new Set(etfs.map((etf) => etf.ticker));
   assert.ok(tickers.has('RSSX') && tickers.has('RSBT'));

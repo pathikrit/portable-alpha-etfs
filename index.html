@@ -159,7 +159,7 @@
       function matches(etf, query) {
         const status = etf.closed ? 'closed' : etf.upcoming ? 'upcoming' : 'trading';
         const haystack = [
-          etf.ticker, etf.name, allocationText(etf), status,
+          etf.ticker, etf.symbol, etf.name, allocationText(etf), status,
           ...etf.allocation.map((a) => hoverText(a.what)),
         ].join(' ').toLowerCase();
         return query.toLowerCase().split(/\s+/).filter(Boolean).every((word) => haystack.includes(word));
@@ -168,7 +168,7 @@
       // holdings: [{ticker, weight}], weight in percent of the portfolio.
       // A ticker that is not in etfs counts as 100% itself.
       function exposures(holdings, etfs) {
-        const byTicker = new Map(etfs.filter((e) => e.ticker).map((e) => [e.ticker.toUpperCase(), e]));
+        const byTicker = new Map(etfs.filter((e) => e.symbol || e.ticker).map((e) => [(e.symbol || e.ticker).toUpperCase(), e]));
         const sums = new Map();
         const add = (what, pct) => sums.set(what, (sums.get(what) || 0) + pct);
         let weight = 0;
@@ -188,6 +188,10 @@
         return { rows, total, weight, leverage: total / 100 };
       }
 
+      // A fund that has no ticker yet gets the placeholder symbol TBD-<position in etf.json>,
+      // so that it can be used in a portfolio. The position does not change with the table filters.
+      const withSymbols = (etfs) => etfs.map((etf, i) => ({ ...etf, symbol: etf.ticker || `TBD-${i + 1}` }));
+
       const DEFAULT_PORTFOLIO = [
         { ticker: 'RSSX', weight: 40 },
         { ticker: 'RSBT', weight: 30 },
@@ -206,7 +210,7 @@
 
       return {
         CATEGORIES, CATEGORY_HOVER, WHAT, hoverText, colorOf, leverage, categoryOf, formatPct, allocationText, matches,
-        exposures, DEFAULT_PORTFOLIO, encodePortfolio, decodePortfolio,
+        exposures, withSymbols, DEFAULT_PORTFOLIO, encodePortfolio, decodePortfolio,
       };
     })();
   </script>
@@ -373,7 +377,7 @@
 
     function Portfolio({ etfs, holdings, setHoldings }) {
       const items = useMemo(
-        () => etfs.filter((e) => e.ticker).map((e) => ({ id: e.ticker, label: e.ticker, name: e.name })),
+        () => etfs.map((e) => ({ id: e.symbol, label: e.symbol, name: e.name })),
         [etfs],
       );
       const source = useMemo(() => ({
@@ -436,7 +440,7 @@
 
       const rows = useMemo(() => etfs
         .filter((e) => (showClosed || !e.closed) && !(hideUpcoming && e.upcoming) && PA.matches(e, query))
-        .map((e) => ({ ...e, key: e.ticker || e.name, leverage: PA.leverage(e), category: PA.categoryOf(e) })),
+        .map((e) => ({ ...e, key: e.symbol, leverage: PA.leverage(e), category: PA.categoryOf(e) })),
         [etfs, query, showClosed, hideUpcoming]);
 
       // etf.json is in alphabetical order. Number the rows in display order: group by group.
@@ -468,7 +472,7 @@
           renderCell: (e) => html`
             <span className="chips">
               <span className=${e.closed ? 'closed' : ''}>
-                <${Link} href=${e.filing} target="_blank" rel="noopener" weight="semibold" tooltip="SEC filing">${e.ticker || 'No ticker'}<//>
+                <${Link} href=${e.filing} target="_blank" rel="noopener" weight="semibold" tooltip=${e.ticker ? 'SEC filing' : 'No ticker assigned yet. Opens the SEC filing.'}>${e.symbol}<//>
               </span>
               ${e.upcoming && html`<${Badge} variant="info" label="Upcoming" />`}
               ${e.closed && html`<${Badge} variant="error" label="Closed" />`}
@@ -545,7 +549,7 @@
     try {
       const response = await fetch('etf.json');
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      root.render(html`<${App} etfs=${await response.json()} />`);
+      root.render(html`<${App} etfs=${PA.withSymbols(await response.json())} />`);
     } catch (error) {
       root.render(html`<div className="boot">Could not load etf.json (${String(error.message)}).</div>`);
     }

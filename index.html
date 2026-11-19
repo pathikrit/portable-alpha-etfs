@@ -55,6 +55,8 @@
     .builder { display: grid; grid-template-columns: auto minmax(300px, 380px) minmax(0, 1fr); gap: 48px; align-items: stretch; }
     .builder > * + * { border-inline-start: 1px solid var(--color-border); padding-inline-start: 48px; }
     .donut-col { display: grid; place-items: center; }
+    .builder > .astryx-banner { grid-column: 2 / -1; align-self: start; border-inline-start: 0; }
+    .go { --color-accent: var(--color-success); --color-on-accent: var(--color-on-success); }
     .donut { position: relative; width: min(100%, 400px); aspect-ratio: 1; }
     .donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
     .donut-value { font-size: 48px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
@@ -226,7 +228,7 @@
     import Chart from 'chart.js/auto';
     import ChartDataLabels from 'chartjs-plugin-datalabels';
     import {
-      Badge, Button, Card, Heading, HStack, IconButton, Link, NumberInput, Slider, Switch, Table, Text, TextInput,
+      Badge, Banner, Button, Card, Heading, HStack, IconButton, Link, NumberInput, Slider, Switch, Table, Text, TextInput,
       Tooltip, Typeahead, VStack, useTableGroupedRows,
     } from '@astryxdesign/core';
 
@@ -296,18 +298,19 @@
       return color;
     }
 
-    // A full circle is 100% of NAV, or the gross exposure when that is larger.
-    // Below 100%, the unallocated part of the circle stays empty.
     function Donut({ result }) {
       const canvas = useRef(null);
       const chart = useRef(null);
       const scheme = useColorScheme();
       useEffect(() => {
-        const gap = Math.max(0, 100 - result.total);
+        // The circle is 100% of NAV. Holdings that add to less leave the cash part empty.
+        const invested = Math.min(result.weight, 100) / 100;
+        const gap = 100 - invested * 100;
         const data = {
           labels: [...result.rows.map((r) => r.what), 'Unallocated'],
           datasets: [{
-            data: [...result.rows.map((r) => r.pct), gap],
+            data: [...result.rows.map((r) => r.normalized * invested), gap],
+            nav: [...result.rows.map((r) => r.pct), 0],
             backgroundColor: [...result.rows.map((r) => resolveColor(cssColor(r.what))), 'transparent'],
             borderColor: resolveColor('var(--color-background-card)'),
             borderWidth: 2,
@@ -335,7 +338,7 @@
                   filter: (item) => item.label !== 'Unallocated',
                   callbacks: {
                     title: (items) => items.map((item) => PA.hoverText(item.label) === item.label ? item.label : `${item.label}: ${PA.hoverText(item.label)}`),
-                    label: (item) => [` ${PA.formatPct(item.parsed)} of NAV`, ` ${PA.formatPct(item.dataset.share[item.dataIndex])} of gross`],
+                    label: (item) => [` ${PA.formatPct(item.dataset.nav[item.dataIndex])} of NAV`, ` ${PA.formatPct(item.dataset.share[item.dataIndex])} of gross`],
                   },
                 },
               },
@@ -403,6 +406,8 @@
       const update = (id, patch) => setHoldings(holdings.map((h) => (h.id === id ? { ...h, ...patch } : h)));
       const result = useMemo(() => PA.exposures(holdings, etfs), [holdings, etfs]);
       const weightOk = Math.abs(result.weight - 100) < 0.05;
+      const overweight = result.weight > 100.05;
+      const isDefault = PA.encodePortfolio(holdings) === PA.encodePortfolio(PA.DEFAULT_PORTFOLIO);
 
       return html`
         <${Card} padding=${5}>
@@ -426,14 +431,19 @@
                     </div>`)}
                 <//>
                 <${HStack} gap=${2}>
-                  <${Button} size="sm" label="Add holding" icon=${html`<${Fa} name="plus" />`}
-                    onClick=${() => setHoldings([...holdings, { id: nextId++, ticker: '', weight: 0 }])} />
-                  <${Button} size="sm" variant="ghost" label="Reset" icon=${html`<${Fa} name="rotate-left" />`}
-                    onClick=${() => setHoldings(withIds(PA.DEFAULT_PORTFOLIO))} />
+                  <span className="go">
+                    <${Button} size="sm" variant="primary" label="Add holding" icon=${html`<${Fa} name="plus" />`}
+                      onClick=${() => setHoldings([...holdings, { id: nextId++, ticker: '', weight: 0 }])} />
+                  </span>
+                  <${Button} size="sm" variant="destructive" label="Reset" icon=${html`<${Fa} name="rotate-left" />`}
+                    isDisabled=${isDefault} onClick=${() => setHoldings(withIds(PA.DEFAULT_PORTFOLIO))} />
                 <//>
-                ${!weightOk && html`<div><${Badge} variant="error" icon=${html`<${Fa} name="triangle-exclamation" />`}
+                ${!weightOk && !overweight && html`<div><${Badge} variant="error" icon=${html`<${Fa} name="triangle-exclamation" />`}
                   label=${`Weights sum to ${PA.formatPct(result.weight)}`} /></div>`}
               <//>
+              ${overweight ? html`
+                <${Banner} status="error" title=${`Weights sum to ${PA.formatPct(result.weight)}`}
+                  description="Weights cannot exceed 100% of NAV. Reduce them to see the exposure." />` : html`
               <${VStack} gap=${3}>
                 <${Heading} level=${3}>Exposure<//>
                 ${result.rows.length > 0 && html`
@@ -441,6 +451,7 @@
                     idKey="what" columns=${EXPOSURE_COLUMNS} density="compact" dividers="grid" />`}
               <//>
               <div className="donut-col">${result.rows.length > 0 && html`<${Donut} result=${result} />`}</div>
+`}
             </div>
           <//>
         <//>`;

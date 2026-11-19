@@ -66,6 +66,7 @@
     .toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
     .toolbar > :first-child { flex: 1 1 260px; max-width: 420px; }
     .switches { display: flex; flex-wrap: wrap; gap: 20px; align-items: center; }
+    .leverage { display: flex; gap: 14px; align-items: center; margin-inline-end: 20px; }
     .group-head { display: inline-flex; gap: 8px; align-items: center; font-weight: 600; }
     @media (max-width: 1100px) {
       .builder { grid-template-columns: minmax(0, 1fr); gap: 24px; }
@@ -558,9 +559,13 @@
               <${TextInput} type="search" label="Search" isLabelHidden hasClear startIcon=${SearchIcon}
                 placeholder="Search" value=${query} onChange=${setQuery} />
               <div className="switches">
-                <${Slider} label="Leverage" min=${LEVERAGE[0]} max=${LEVERAGE[1]} step=${0.1} width=${260}
-                  value=${leverage} valueDisplay="text" formatValue=${(v) => `${v.toFixed(1)}x`}
-                  onChange=${(v) => setLeverage(v.map((n) => Math.round(n * 10) / 10))} />
+                <div className="leverage">
+                  <${Text} type="label">Leverage<//>
+                  <${Slider} label="Leverage" isLabelHidden min=${LEVERAGE[0]} max=${LEVERAGE[1]} step=${0.1} width=${220}
+                    value=${leverage} valueDisplay="none" formatValue=${(v) => `${v.toFixed(1)}x`}
+                    marks=${[...new Set(leverage)].map((value) => ({ value, label: `${value.toFixed(1)}x` }))}
+                    onChange=${(v) => setLeverage(v.map((n) => Math.round(n * 10) / 10))} />
+                </div>
                 <${Switch} label="Hide upcoming" value=${hideUpcoming} onChange=${setHideUpcoming} />
                 <${Switch} label="Show closed" value=${showClosed} onChange=${setShowClosed} />
               </div>

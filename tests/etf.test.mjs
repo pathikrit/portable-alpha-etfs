@@ -12,7 +12,8 @@ const page = readFileSync(new URL('index.html', root), 'utf8');
 const logic = page.match(/<script id="logic">([\s\S]*?)<\/script>/)[1];
 const PA = vm.runInNewContext(`${logic}; PA`);
 
-const KEYS = ['ticker', 'name', 'filing', 'closed', 'url', 'upcoming', 'allocation'];
+const REQUIRED = ['ticker', 'name', 'filing', 'url', 'allocation'];
+const OPTIONAL = ['closed', 'upcoming']; // Only written when true. A key that is not there means false.
 const isUrl = (value) => typeof value === 'string' && /^https:\/\/\S+$/.test(value);
 const label = (etf) => etf.ticker || etf.name;
 
@@ -21,19 +22,23 @@ test('etf.json is a list of funds', () => {
 });
 
 test('each fund has the schema keys only (no leverage, no AUM)', () => {
-  for (const etf of etfs) assert.deepEqual(Object.keys(etf).sort(), [...KEYS].sort(), label(etf));
+  for (const etf of etfs) {
+    const keys = Object.keys(etf);
+    for (const key of REQUIRED) assert.ok(keys.includes(key), `${label(etf)}: ${key} is required`);
+    for (const key of keys) assert.ok(REQUIRED.includes(key) || OPTIONAL.includes(key), `${label(etf)}: ${key} is not in the schema`);
+  }
 });
 
 test('each fund has correct field types', () => {
   for (const etf of etfs) {
     const id = label(etf);
     assert.ok(typeof etf.name === 'string' && etf.name.trim() === etf.name && etf.name, `${id}: name`);
-    assert.equal(typeof etf.closed, 'boolean', `${id}: closed`);
-    assert.equal(typeof etf.upcoming, 'boolean', `${id}: upcoming`);
+    for (const key of OPTIONAL) if (key in etf) assert.equal(etf[key], true, `${id}: write ${key} only when it is true`);
     assert.ok(!(etf.closed && etf.upcoming), `${id}: closed and upcoming at the same time`);
     assert.ok(isUrl(etf.url), `${id}: url`);
     assert.ok(isUrl(etf.filing) && new URL(etf.filing).hostname.endsWith('sec.gov'), `${id}: filing must be on sec.gov`);
     // Only a fund that is not trading yet can be without a ticker.
+    assert.ok('ticker' in etf, `${id}: ticker is required, null when there is none yet`);
     if (etf.ticker === null) assert.ok(etf.upcoming, `${id}: only an upcoming fund can have a null ticker`);
     else assert.match(etf.ticker, /^[A-Z]{2,5}$/, `${id}: ticker`);
   }

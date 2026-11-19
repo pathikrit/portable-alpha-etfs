@@ -12,9 +12,10 @@ Your task is to make `etf.json` agree with the facts of today.
 
 - US-listed ETFs only. Do not add mutual funds, funds listed in other countries or UCITS funds.
 - A fund is in the list only if it stacks exposures. The allocation must add to more than 100%.
-- The keys are `ticker`, `name`, `filing`, `closed`, `url`, `upcoming` and `allocation`. Do not add other keys.
+- The required keys are `ticker`, `name`, `filing`, `url` and `allocation`. The optional keys are `closed` and `upcoming`.
+  Do not add other keys.
   Do not add leverage (the page calculates it) or AUM (it changes).
-- `ticker`: the exchange ticker. Use `null` only for an upcoming fund that has no ticker yet.
+- `ticker`: the exchange ticker. It is always there. Use `null` only for an upcoming fund that has no ticker yet.
 - `name`: the official fund name from the SEC filing or from the issuer.
   Remove "ETF", "Fund" or "Exchange-Traded Fund" from the end of the name. Each entry is an ETF.
 - `filing`: a link on sec.gov. Use the EDGAR series page:
@@ -24,10 +25,12 @@ Your task is to make `etf.json` agree with the facts of today.
   (the SEC 497 supplement or the issuer's press release). For an upcoming fund that has no page, a post on X or
   LinkedIn that tells about the filing. If there is no such post, the prospectus document on sec.gov.
 - The entries are in alphabetical order by `ticker`. Funds that have no ticker are last, in order by `name`.
-- `closed` and `upcoming` are booleans. They are never `true` at the same time.
+- `closed` and `upcoming`: write the key only when it is `true`. A key that is not there means `false`.
+  Remove the key when it is no longer true. They are never `true` at the same time.
 - `allocation`: a list of `{"pct": 100, "what": "SPY"}`. `pct` is a number. `what` is a well-known ticker
   for the exposure (SPY, GOVT) or a label (Gold, MF, BTC). Use labels that are already in the file where possible.
-  `index.html` has the hover text and the color of each label in `WHAT`. Add new labels there.
+  `index.html` has the hover text and the asset class (which gives the color) of each label in `WHAT`.
+  Add each new label there, or it shows in gray with no hover text.
 - Put the parts of `allocation` in order: the largest `pct` first, then `what` in alphabetical order.
   For example, `100 SPY`, `60 DBMF`.
 - The page calculates the group from the allocation: BTC or ETH gives "Crypto";
@@ -42,17 +45,19 @@ Your task is to make `etf.json` agree with the facts of today.
    ```
 
    The check compares each entry with live quotes and with SEC records. It changes no files.
+   The check is only the first step. It does not find new funds (step 4).
    `--links` also tests each `url` and `filing` link. It is slower.
 
-2. Examine each flag. Do not change an entry on the flag alone. Find a primary source first:
+2. Examine each flag. A flag is a question, not an answer: a fund that trades very little can get a
+   `POSSIBLY CLOSED` flag, and a link can fail because the site refused the request. Do not change an entry on the flag alone. Find a primary source first:
    the SEC filing, the issuer's site or an exchange notice.
 
    | Flag | What to find | Change, if it is confirmed |
    | --- | --- | --- |
    | `POSSIBLY CLOSED`, `NOT FOUND` | A liquidation notice (SEC form 497) or a ticker change | `closed: true`, and `url` becomes the closure notice |
-   | `NOW TRADING` | The fund page of the issuer | `upcoming: false`, and `url` becomes the fund page |
+   | `NOW TRADING` | The fund page of the issuer | Remove `upcoming`, and `url` becomes the fund page |
    | `TICKER ASSIGNED`, `TICKER CHANGE` | The new ticker in the latest filing | Set `ticker`. Then run the check again |
-   | `STILL TRADING` | If a different fund now uses the ticker | Usually no change. If the closure was cancelled, `closed: false` |
+   | `STILL TRADING` | If a different fund now uses the ticker | Usually no change. If the closure was cancelled, remove `closed` |
    | `DEAD LINK` | The new address of the page | Replace the link |
 
 3. Examine each upcoming fund, because the check sees little of a fund that has no ticker.
@@ -73,7 +78,11 @@ Your task is to make `etf.json` agree with the facts of today.
    node --test tests/*.test.mjs
    ```
 
-7. Give the user a report: what changed with the source of each change, the flags that remain and why,
+7. If the user gave you a list of funds, compare each one with `etf.json`. Do not leave out a fund because
+   the match is not certain: add it, tell the user what is not confirmed, and ask.
+   Tell the user about each fund that is not in the file, with the reason (for example, a UCITS fund).
+
+8. Give the user a report: what changed with the source of each change, the flags that remain and why,
    and the items that you could not confirm.
 
 ## Data sources

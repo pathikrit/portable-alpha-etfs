@@ -60,7 +60,7 @@
     .num { font-variant-numeric: tabular-nums; }
     .toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
     .toolbar > :first-child { flex: 1 1 260px; max-width: 420px; }
-    .switches { display: flex; flex-wrap: wrap; gap: 20px; }
+    .switches { display: flex; flex-wrap: wrap; gap: 20px; align-items: center; }
     .group-head { display: inline-flex; gap: 8px; align-items: center; font-weight: 600; }
     @media (max-width: 820px) {
       .holding { grid-template-columns: minmax(0, 1fr) 100px auto; }
@@ -224,7 +224,7 @@
     import Chart from 'chart.js/auto';
     import ChartDataLabels from 'chartjs-plugin-datalabels';
     import {
-      Badge, Button, Card, Heading, HStack, IconButton, Link, NumberInput, Switch, Table, Text, TextInput,
+      Badge, Button, Card, Heading, HStack, IconButton, Link, NumberInput, Slider, Switch, Table, Text, TextInput,
       Tooltip, Typeahead, VStack, useTableGroupedRows,
     } from '@astryxdesign/core';
 
@@ -233,7 +233,7 @@
     const REPO = 'https://github.com/pathikrit/portable-alpha-etfs';
 
     // All UI state lives in the URL hash, so that each view has a link:
-    // #p=RSSX:40,RSBT:30&q=gold&closed=1&upcoming=0&collapsed=0,2&theme=dark
+    // #p=RSSX:40,RSBT:30&q=gold&closed=1&upcoming=0&lev=1.5-2&collapsed=0,2&theme=dark
     // A value that is the default is not written.
     const hashParams = () => new URLSearchParams(location.hash.slice(1));
     function setHashParam(key, value) {
@@ -250,6 +250,12 @@
       useEffect(() => setHashParam(key, encode(value)), [key, value]);
       return [value, setValue];
     }
+    const LEVERAGE = [1, 3];
+    const decodeLeverage = (text) => {
+      const [low, high] = text.split('-').map(Number);
+      return low >= LEVERAGE[0] && high <= LEVERAGE[1] && low <= high ? [low, high] : null;
+    };
+    const encodeLeverage = ([low, high]) => (low === LEVERAGE[0] && high === LEVERAGE[1] ? '' : `${low}-${high}`);
     const decodeGroups = (text) => new Set(text.split(',').map((i) => PA.CATEGORIES[i]).filter(Boolean));
     const encodeGroups = (groups) => PA.CATEGORIES.map((c, i) => (groups.has(c) ? i : null)).filter((i) => i != null).join(',');
 
@@ -452,12 +458,15 @@
       const [query, setQuery] = useHashState('q', '');
       const [showClosed, setShowClosed] = useHashState('closed', false, (text) => text === '1', (on) => (on ? '1' : ''));
       const [hideUpcoming, setHideUpcoming] = useHashState('upcoming', false, (text) => text === '0', (on) => (on ? '0' : ''));
+      const [leverage, setLeverage] = useHashState('lev', LEVERAGE, decodeLeverage, encodeLeverage);
       const [collapsed, setCollapsed] = useHashState('collapsed', new Set(), decodeGroups, encodeGroups);
 
       const rows = useMemo(() => etfs
         .filter((e) => (showClosed || !e.closed) && !(hideUpcoming && e.upcoming) && PA.matches(e, query))
-        .map((e) => ({ ...e, key: e.symbol, leverage: PA.leverage(e), category: PA.categoryOf(e) })),
-        [etfs, query, showClosed, hideUpcoming]);
+        .map((e) => ({ ...e, key: e.symbol, leverage: PA.leverage(e), category: PA.categoryOf(e) }))
+        // Compare at 2 decimals, the precision that the Leverage column shows.
+        .filter((e) => +e.leverage.toFixed(2) >= leverage[0] && +e.leverage.toFixed(2) <= leverage[1]),
+        [etfs, query, showClosed, hideUpcoming, leverage]);
 
       // etf.json is in alphabetical order. Number the rows in display order: group by group.
       const numbered = useMemo(() => PA.CATEGORIES
@@ -525,6 +534,9 @@
               <${TextInput} type="search" label="Search" isLabelHidden hasClear startIcon=${SearchIcon}
                 placeholder="Search" value=${query} onChange=${setQuery} />
               <div className="switches">
+                <${Slider} label="Leverage" min=${LEVERAGE[0]} max=${LEVERAGE[1]} step=${0.1} width=${260}
+                  value=${leverage} valueDisplay="text" formatValue=${(v) => `${v.toFixed(1)}x`}
+                  onChange=${(v) => setLeverage(v.map((n) => Math.round(n * 10) / 10))} />
                 <${Switch} label="Hide upcoming" value=${hideUpcoming} onChange=${setHideUpcoming} />
                 <${Switch} label="Show closed" value=${showClosed} onChange=${setShowClosed} />
               </div>

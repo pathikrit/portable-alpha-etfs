@@ -1,0 +1,661 @@
+<!doctype html>
+<html lang="en" data-astryx-theme="neutral">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Portable Alpha ETFs</title>
+  <meta name="description" content="A list of US-listed portable alpha (return stacked) ETFs and a tool that shows the exposure of a portfolio made from them.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@astryxdesign/core@0.7.16/src/reset.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@astryxdesign/core@0.7.16/dist/astryx.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@astryxdesign/theme-neutral@0.7.16/dist/theme.css">
+  <link rel="stylesheet" href="https://kit.fontawesome.com/a22be8527e.css" crossorigin="anonymous">
+  <script>
+    // Apply a saved theme before first paint. With no saved theme, the OS setting decides.
+    try {
+      const saved = new URLSearchParams(location.hash.slice(1)).get('theme') || localStorage.getItem('theme');
+      if (saved === 'light' || saved === 'dark') document.documentElement.dataset.theme = saved;
+    } catch {}
+  </script>
+  <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@19.2.0",
+        "react/jsx-runtime": "https://esm.sh/react@19.2.0/jsx-runtime",
+        "react-dom": "https://esm.sh/react-dom@19.2.0",
+        "react-dom/client": "https://esm.sh/react-dom@19.2.0/client",
+        "@astryxdesign/core": "https://esm.sh/@astryxdesign/core@0.7.16?external=react,react-dom",
+        "htm": "https://esm.sh/htm@3.1.1",
+        "chart.js": "https://esm.sh/chart.js@4.4.7",
+        "chart.js/auto": "https://esm.sh/chart.js@4.4.7/auto",
+        "chart.js/helpers": "https://esm.sh/chart.js@4.4.7/helpers",
+        "chartjs-plugin-datalabels": "https://esm.sh/chartjs-plugin-datalabels@2.2.0?external=chart.js"
+      }
+    }
+  </script>
+  <style>
+    body {
+      margin: 0;
+      font-family: var(--font-family-body);
+      background: var(--color-background-body);
+      color: var(--color-text-primary);
+    }
+    #root { max-width: 1300px; margin: 0 auto; padding: 24px 16px 48px; }
+    .boot { padding: 48px 0; text-align: center; color: var(--color-text-secondary); }
+    .brand-icon { font-size: 28px; color: var(--color-icon-accent); }
+    .closed, .closed a { color: var(--color-text-secondary); }
+    .chips { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+    .etfs.one-line td { white-space: nowrap; }
+    .etfs.one-line .chips { flex-wrap: nowrap; }
+    .etfs td:nth-child(2) .chips { flex-wrap: nowrap; white-space: nowrap; }
+    .etfs td:nth-child(2) .chips > * { flex-shrink: 0; }
+    /* One color for each asset class: tags, pie slices and the exposure table all use these. */
+    :root {
+      --c-bond: light-dark(#1f8a3b, #4fb568);
+      --c-large: light-dark(#1b3a8f, #3f66d0);
+      --c-global: light-dark(#2f72e0, #6a9df7);
+      --c-small: light-dark(#6db6f2, #a6d6ff);
+      --c-longshort: light-dark(#6557d6, #8f84f2);
+      --c-commodity: light-dark(#c4900a, #e2b222);
+      --c-futures: light-dark(#9a35cc, #c573ec);
+      --c-crypto: light-dark(#d43a3a, #f06464);
+      --c-other: light-dark(#7a7a7a, #9a9a9a);
+    }
+    .chip {
+      display: inline-flex; align-items: center; white-space: nowrap; line-height: 1.5;
+      padding: 0 8px; border-radius: 999px; font-size: 12px; font-weight: 500;
+      color: var(--color-text-primary); font-family: inherit; cursor: pointer;
+      background: color-mix(in srgb, var(--c) 42%, transparent);
+      border: 1px solid color-mix(in srgb, var(--c) 85%, transparent);
+    }
+    .chip:hover { background: color-mix(in srgb, var(--c) 65%, transparent); }
+    .chip:focus-visible { outline: 2px solid var(--color-text-primary); outline-offset: 1px; }
+    .plus { color: var(--color-text-secondary); font-size: 12px; }
+    .holding { display: grid; grid-template-columns: 108px 88px auto; gap: 8px; align-items: center; justify-content: start; }
+    .builder { display: grid; grid-template-columns: auto minmax(300px, 380px) minmax(0, 1fr); gap: 40px; align-items: stretch; }
+    .builder > * + * { border-inline-start: 1px solid var(--color-border); padding-inline-start: 40px; }
+    .donut-col { display: grid; place-items: center; }
+    .builder > .astryx-banner { grid-column: 2 / -1; align-self: start; border-inline-start: 0; }
+    .go { --color-accent: var(--color-success); --color-on-accent: var(--color-on-success); }
+    .red { --color-accent: var(--color-error); --color-on-accent: var(--color-on-error); }
+    .donut { position: relative; width: min(100%, 400px); aspect-ratio: 1; }
+    .donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
+    .donut-value { font-size: 48px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+    .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-inline-end: 8px; background: var(--swatch); }
+    .num { font-variant-numeric: tabular-nums; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
+    .toolbar > :first-child { flex: 1 1 260px; max-width: 420px; }
+    .switches { display: flex; flex-wrap: wrap; gap: 20px; align-items: center; }
+    .leverage { display: flex; gap: 14px; align-items: center; margin-inline-end: 20px; }
+    .group-head { display: inline-flex; gap: 8px; align-items: center; font-weight: 600; }
+    @media (max-width: 1100px) {
+      .builder { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+      .builder > * + * { border-inline-start: 0; padding-inline-start: 0; border-top: 1px solid var(--color-border); padding-top: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"><div class="boot">Loading the ETF list…</div></div>
+
+  <!-- Pure logic. No DOM access here: tests/ loads this block and runs it in Node. -->
+  <script id="logic">
+    const PA = (() => {
+      // Group name -> hover text.
+      const CATEGORY_HOVER = {
+        'Classic Combos >1.75x': 'Equities, bonds and gold with more than 1.75x leverage',
+        'Classic Combos <1.75x': 'Equities, bonds and gold with 1.75x leverage or less',
+        'Managed Futures': 'Managed futures, CTAs, carry, macro etc.',
+        'Crypto': 'BTC, ETH etc.',
+      };
+      const CATEGORIES = Object.keys(CATEGORY_HOVER);
+
+      // Asset classes. Each has one color, used for the tags, the pie and the exposure table (see --c-* in the CSS).
+      // Known values of allocation[].what: [hover text, asset class]. A value that is not here shows as-is, in gray.
+      const WHAT = {
+        // Bonds: green
+        Bonds: ['Bonds', 'bond'],
+        'Corp Bonds': ['Investment-grade corporate bonds', 'bond'],
+        Munis: ['Municipal bonds', 'bond'],
+        GOVT: ['US Treasuries', 'bond'],
+        BND: ['US aggregate bonds', 'bond'],
+        AGG: ['US aggregate bonds', 'bond'],
+        IEF: ['7-10 year US Treasuries', 'bond'],
+        IEI: ['3-7 year US Treasuries', 'bond'],
+        MINT: ['Short-duration active bonds', 'bond'],
+        BIL: ['Treasury bills', 'bond'],
+        STIP: ['Short-term TIPS', 'bond'],
+        TIPZ: ['Inflation-linked bonds (TIPS)', 'bond'],
+        LTPZ: ['Long-term TIPS', 'bond'],
+        // US large-cap equities: dark blue
+        SPY: ['S&P 500', 'large'],
+        QQQ: ['Nasdaq-100', 'large'],
+        'US Equity': ['US equity ETFs', 'large'],
+        Stocks: ['Individual stocks', 'large'],
+        Sector: ['Tactical sector position', 'large'],
+        'Equity Rotation': ['Tactical equity rotation', 'large'],
+        // Global and international equities: medium blue
+        VT: ['Global equities', 'global'],
+        VXUS: ['International equities (ex-US)', 'global'],
+        VEA: ['Developed markets equities (ex-US)', 'global'],
+        EFA: ['Developed markets equities (ex-US)', 'global'],
+        VWO: ['Emerging markets equities', 'global'],
+        VGK: ['European equities', 'global'],
+        EWJ: ['Japanese equities', 'global'],
+        'Intl Equity': ['International equity ETFs', 'global'],
+        // Small-cap equities: light blue
+        IJR: ['US small-cap equities', 'small'],
+        'US Small Cap': ['US small-cap equities', 'small'],
+        AVUV: ['US small-cap value equities', 'small'],
+        // Long-short equity: purple-blue
+        'L/S': ['Long-short US equity', 'longshort'],
+        'Intl L/S': ['Long-short international equity', 'longshort'],
+        MNA: ['Merger arbitrage', 'longshort'],
+        // Commodities and miners: gold
+        Gold: ['Gold', 'commodity'],
+        Silver: ['Silver', 'commodity'],
+        Copper: ['Copper', 'commodity'],
+        Oil: ['Crude oil', 'commodity'],
+        Commodities: ['Commodities', 'commodity'],
+        DBC: ['Broad commodities', 'commodity'],
+        CTA: ['Managed futures (CTA trend following)', 'commodity'],
+        'Gold Miners': ['Gold miners', 'commodity'],
+        'Copper Miners': ['Copper miners', 'commodity'],
+        REMX: ['Rare earth and strategic metals miners', 'commodity'],
+        CRIT: ['Critical materials miners', 'commodity'],
+        // Managed futures, carry and macro: purple
+        MF: ['Managed futures', 'futures'],
+        Carry: ['Futures yield (carry)', 'futures'],
+        DBMF: ['iMGP DBi Managed Futures Strategy ETF', 'futures'],
+        AHLT: ['American Beacon AHL Trend ETF', 'futures'],
+        LCSIX: ['LoCorr Macro Strategies Fund', 'futures'],
+        Macro: ['Global macro', 'futures'],
+        // Crypto: red
+        BTC: ['Bitcoin', 'crypto'],
+        ETH: ['Ether', 'crypto'],
+      };
+      const CRYPTO = new Set(['BTC', 'ETH']);
+      // The table group does not come from the color: CTA has the commodity color but is in Managed Futures.
+      const MANAGED_FUTURES = new Set(['MF', 'CTA', 'Carry', 'DBMF', 'AHLT', 'LCSIX', 'Macro']);
+      const isManagedFutures = (what) => MANAGED_FUTURES.has(what);
+
+      const hoverText = (what) => (WHAT[what] || [what])[0];
+      const colorOf = (what) => (WHAT[what] || [what, 'other'])[1];
+
+      const totalPct = (etf) => etf.allocation.reduce((sum, a) => sum + a.pct, 0);
+      const leverage = (etf) => totalPct(etf) / 100;
+
+      // The category is not stored in etf.json. It comes from the allocation.
+      function categoryOf(etf) {
+        const whats = etf.allocation.map((a) => a.what);
+        if (whats.some((w) => CRYPTO.has(w))) return CATEGORIES[3];
+        if (whats.some(isManagedFutures)) return CATEGORIES[2];
+        return leverage(etf) > 1.75 ? CATEGORIES[0] : CATEGORIES[1];
+      }
+
+      const formatPct = (n) => `${Math.round(n * 10) / 10}%`;
+      const allocationText = (etf) => etf.allocation.map((a) => `${formatPct(a.pct)} ${a.what}`).join(' + ');
+
+      // Free-form search: each word must be in at least one field.
+      function matches(etf, query) {
+        const status = etf.closed ? 'closed' : etf.upcoming ? 'upcoming' : 'trading';
+        const haystack = [
+          etf.ticker, etf.symbol, etf.name, allocationText(etf), status,
+          ...etf.allocation.map((a) => hoverText(a.what)),
+        ].join(' ').toLowerCase();
+        return query.toLowerCase().split(/\s+/).filter(Boolean).every((word) => haystack.includes(word));
+      }
+
+      // holdings: [{ticker, weight}], weight in percent of the portfolio.
+      // A ticker that is not in etfs counts as 100% itself.
+      function exposures(holdings, etfs) {
+        const byTicker = new Map(etfs.filter((e) => e.symbol || e.ticker).map((e) => [(e.symbol || e.ticker).toUpperCase(), e]));
+        const sums = new Map();
+        const add = (what, pct) => sums.set(what, (sums.get(what) || 0) + pct);
+        let weight = 0;
+        for (const h of holdings) {
+          const ticker = (h.ticker || '').trim().toUpperCase();
+          const w = Number(h.weight) || 0;
+          if (!ticker || w <= 0) continue;
+          weight += w;
+          const etf = byTicker.get(ticker);
+          if (etf) for (const a of etf.allocation) add(a.what, (w * a.pct) / 100);
+          else add(ticker, w);
+        }
+        const total = [...sums.values()].reduce((a, b) => a + b, 0);
+        const rows = [...sums].map(([what, pct]) => ({ what, pct, normalized: total ? (pct / total) * 100 : 0 }))
+          .sort((a, b) => b.pct - a.pct);
+        // Leverage is against NAV: holdings that add to less than 100% leave the remainder in cash.
+        return { rows, total, weight, leverage: total / 100 };
+      }
+
+      // A fund that has no ticker yet gets the placeholder symbol TBD-<position in etf.json>,
+      // so that it can be used in a portfolio. The position does not change with the table filters.
+      const withSymbols = (etfs) => etfs.map((etf, i) => ({ ...etf, symbol: etf.ticker || `TBD-${i + 1}` }));
+
+      const DEFAULT_PORTFOLIO = ['RSSX', 'RSBT', 'WTLS', 'GMIX', 'AVUV'].map((ticker) => ({ ticker, weight: 20 }));
+      // Portfolio in the URL: #p=RSSX:40,RSBT:30,AVUV:30
+      const encodePortfolio = (holdings) =>
+        holdings.filter((h) => h.ticker).map((h) => `${h.ticker}:${Number(h.weight) || 0}`).join(',');
+      function decodePortfolio(text) {
+        const holdings = (text || '').split(',').map((part) => {
+          const [ticker, weight] = part.split(':');
+          return { ticker: (ticker || '').trim().toUpperCase().replace(/[^A-Z0-9.\-]/g, ''), weight: Number(weight) || 0 };
+        }).filter((h) => h.ticker);
+        return holdings.length ? holdings : null;
+      }
+
+      return {
+        CATEGORIES, CATEGORY_HOVER, WHAT, hoverText, colorOf, leverage, categoryOf, formatPct, allocationText, matches,
+        exposures, withSymbols, DEFAULT_PORTFOLIO, encodePortfolio, decodePortfolio,
+      };
+    })();
+  </script>
+
+  <script type="module">
+    import * as React from 'react';
+    import { createRoot } from 'react-dom/client';
+    import htm from 'htm';
+    import Chart from 'chart.js/auto';
+    import ChartDataLabels from 'chartjs-plugin-datalabels';
+    import {
+      Badge, Banner, Button, Card, Heading, HStack, IconButton, Link, NumberInput, Slider, Switch, Table, Text, TextInput,
+      Tooltip, Typeahead, VStack, useTableGroupedRows,
+    } from '@astryxdesign/core';
+
+    const { useEffect, useMemo, useRef, useState } = React;
+    const html = htm.bind(React.createElement);
+    const REPO = 'https://github.com/pathikrit/portable-alpha-etfs';
+
+    // All UI state lives in the URL hash, so that each view has a link:
+    // #p=RSSX:40,RSBT:30&q=gold&closed=1&upcoming=0&lev=1.25-2&collapsed=0,2&theme=dark
+    // A value that is the default is not written.
+    const hashParams = () => new URLSearchParams(location.hash.slice(1));
+    function setHashParam(key, value) {
+      const params = hashParams();
+      if (value) params.set(key, value); else params.delete(key);
+      const text = params.toString().replace(/%3A/g, ':').replace(/%2C/g, ',');
+      history.replaceState(null, '', text ? `#${text}` : location.pathname + location.search);
+    }
+    function useHashState(key, initial, decode = (text) => text, encode = (value) => value) {
+      const [value, setValue] = useState(() => {
+        const text = hashParams().get(key);
+        return text == null ? initial : decode(text) ?? initial;
+      });
+      useEffect(() => setHashParam(key, encode(value)), [key, value]);
+      return [value, setValue];
+    }
+    const LEVERAGE = [1, 3];
+    const LEVERAGE_TICKS = [1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 2.75, 3];
+    const decodeLeverage = (text) => {
+      const [low, high] = text.split('-').map(Number);
+      return low >= LEVERAGE[0] && high <= LEVERAGE[1] && low <= high ? [low, high] : null;
+    };
+    const encodeLeverage = ([low, high]) => (low === LEVERAGE[0] && high === LEVERAGE[1] ? '' : `${low}-${high}`);
+    const decodeGroups = (text) => new Set(text.split(',').map((i) => PA.CATEGORIES[i]).filter(Boolean));
+    const encodeGroups = (groups) => PA.CATEGORIES.map((c, i) => (groups.has(c) ? i : null)).filter((i) => i != null).join(',');
+
+    const Fa = ({ name, className = '' }) =>
+      html`<i className=${`fa-duotone fa-solid fa-${name} ${className}`} aria-hidden="true"></i>`;
+    const SearchIcon = () => html`<${Fa} name="magnifying-glass" />`;
+    const cssColor = (what) => `var(--c-${PA.colorOf(what)})`;
+
+    // A click on a tag searches for its asset.
+    function Chip({ pct, what, onPick }) {
+      const label = pct == null ? what : `${PA.formatPct(pct)} ${what}`;
+      const badge = html`<button type="button" className="chip" style=${{ '--c': cssColor(what) }}
+        aria-label=${`Search for ${what}`} onClick=${() => onPick(what)}>${label}</button>`;
+      const hover = PA.hoverText(what);
+      return hover === what ? badge : html`<${Tooltip} content=${hover}>${badge}<//>`;
+    }
+
+    // Re-render when the color scheme changes (the theme button or the OS setting).
+    function useColorScheme() {
+      const [tick, setTick] = useState(0);
+      useEffect(() => {
+        const bump = () => setTick((n) => n + 1);
+        const observer = new MutationObserver(bump);
+        observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+        const media = matchMedia('(prefers-color-scheme: dark)');
+        media.addEventListener('change', bump);
+        return () => { observer.disconnect(); media.removeEventListener('change', bump); };
+      }, []);
+      return tick;
+    }
+    // Theme tokens use light-dark(), which a canvas cannot read. Resolve them through a real element.
+    function resolveColor(value) {
+      const probe = document.createElement('span');
+      probe.style.color = value;
+      document.body.append(probe);
+      const color = getComputedStyle(probe).color;
+      probe.remove();
+      return color;
+    }
+
+    function Donut({ result }) {
+      const canvas = useRef(null);
+      const chart = useRef(null);
+      const scheme = useColorScheme();
+      useEffect(() => {
+        // The circle is 100% of NAV. Holdings that add to less leave the cash part empty.
+        const invested = Math.min(result.weight, 100) / 100;
+        const gap = 100 - invested * 100;
+        const data = {
+          labels: [...result.rows.map((r) => r.what), 'Unallocated'],
+          datasets: [{
+            data: [...result.rows.map((r) => r.normalized * invested), gap],
+            nav: [...result.rows.map((r) => r.pct), 0],
+            backgroundColor: [...result.rows.map((r) => resolveColor(cssColor(r.what))), 'transparent'],
+            borderColor: resolveColor('var(--color-background-card)'),
+            borderWidth: 2,
+            hoverOffset: 4,
+            share: [...result.rows.map((r) => r.normalized), 0],
+          }],
+        };
+        // White or black text on each slice, by the lightness of its color.
+        const ink = (ctx) => {
+          const [r, g, b] = (String(ctx.dataset.backgroundColor[ctx.dataIndex]).match(/[\d.]+/g) || [0, 0, 0]).map(Number);
+          return 0.2126 * r + 0.7152 * g + 0.0722 * b > 150 ? '#111111' : '#ffffff';
+        };
+        if (!chart.current) {
+          chart.current = new Chart(canvas.current, {
+            type: 'doughnut',
+            data,
+            plugins: [ChartDataLabels],
+            options: {
+              cutout: '50%', animation: { duration: 250 }, layout: { padding: 4 },
+              plugins: {
+                legend: { display: false },
+                // A slice that is too small for its label shows it on hover only.
+                datalabels: {
+                  display: (ctx) => ctx.dataset.share[ctx.dataIndex] >= 6,
+                  formatter: (value, ctx) => `${ctx.chart.data.labels[ctx.dataIndex]}\n${PA.formatPct(ctx.dataset.share[ctx.dataIndex])}`,
+                  color: ink, textAlign: 'center', font: { weight: 600, size: 13, family: 'Figtree, sans-serif' },
+                },
+                tooltip: {
+                  filter: (item) => item.label !== 'Unallocated',
+                  callbacks: {
+                    title: (items) => items.map((item) => PA.hoverText(item.label) === item.label ? item.label : `${item.label}: ${PA.hoverText(item.label)}`),
+                    label: (item) => [` ${PA.formatPct(item.dataset.nav[item.dataIndex])} of NAV`, ` ${PA.formatPct(item.dataset.share[item.dataIndex])} of gross`],
+                  },
+                },
+              },
+            },
+          });
+        } else {
+          chart.current.data = data;
+          chart.current.update();
+        }
+      }, [result, scheme]);
+      useEffect(() => () => chart.current?.destroy(), []);
+      return html`
+        <div className="donut">
+          <canvas ref=${canvas} role="img" aria-label="Exposure by asset"></canvas>
+          <div className="donut-center">
+            <span className="donut-value">${result.leverage.toFixed(2)}x</span>
+            <${Text} type="supporting" color="secondary">leverage<//>
+          </div>
+        </div>`;
+    }
+
+    const EXPOSURE_COLUMNS = [
+      { key: 'what', header: 'Asset', renderCell: (r) => html`<${Tooltip} content=${PA.hoverText(r.what)}>
+          <span><span className="swatch" style=${{ '--swatch': r.total ? 'transparent' : cssColor(r.what) }}></span>${r.total ? html`<strong>${r.what}</strong>` : r.what}</span><//>` },
+      { key: 'pct', header: '% of NAV', align: 'end', renderCell: (r) => html`<span className="num">${PA.formatPct(r.pct)}</span>` },
+      { key: 'normalized', header: '% of gross', align: 'end', renderCell: (r) => html`<span className="num">${PA.formatPct(r.normalized)}</span>` },
+    ];
+
+    function ThemeButton() {
+      const [dark, setDark] = useState(() => {
+        const saved = document.documentElement.dataset.theme;
+        return saved ? saved === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+      });
+      const toggle = () => {
+        const next = dark ? 'light' : 'dark';
+        document.documentElement.dataset.theme = next;
+        try { localStorage.setItem('theme', next); } catch {}
+        setHashParam('theme', next);
+        setDark(!dark);
+      };
+      return html`<${IconButton} variant="ghost" label=${dark ? 'Use light mode' : 'Use dark mode'}
+        tooltip=${dark ? 'Use light mode' : 'Use dark mode'} icon=${html`<${Fa} name=${dark ? 'sun-bright' : 'moon-stars'} />`}
+        onClick=${toggle} />`;
+    }
+
+    let nextId = 1;
+    const withIds = (holdings) => holdings.map((h) => ({ ...h, id: nextId++ }));
+
+    function Portfolio({ etfs, holdings, setHoldings }) {
+      const items = useMemo(
+        () => etfs.map((e) => ({ id: e.symbol, label: e.symbol, name: e.name })),
+        [etfs],
+      );
+      const source = useMemo(() => ({
+        bootstrap: () => items,
+        search: (query) => {
+          const q = query.trim().toUpperCase();
+          if (!q) return items;
+          const hits = items.filter((i) => i.id.includes(q) || i.name.toUpperCase().includes(q));
+          // A ticker that is not in the list is permitted. It counts as 100% itself.
+          return hits.some((i) => i.id === q) ? hits : [...hits, { id: q, label: q, name: 'Other ticker (counted as 100% itself)' }];
+        },
+      }), [items]);
+      // Text that is typed but not picked from the menu still counts: it becomes the ticker when the field loses focus.
+      const typed = useRef({});
+      const commitTyped = (id) => {
+        const ticker = (typed.current[id] || '').trim().toUpperCase().replace(/[^A-Z0-9.\-]/g, '');
+        delete typed.current[id];
+        if (ticker) update(id, { ticker });
+      };
+      const update = (id, patch) => setHoldings(holdings.map((h) => (h.id === id ? { ...h, ...patch } : h)));
+      const result = useMemo(() => PA.exposures(holdings, etfs), [holdings, etfs]);
+      const weightOk = Math.abs(result.weight - 100) < 0.05;
+      const overweight = result.weight > 100.05;
+      const isDefault = PA.encodePortfolio(holdings) === PA.encodePortfolio(PA.DEFAULT_PORTFOLIO);
+
+      return html`
+        <${Card} padding=${5}>
+          <${VStack} gap=${4}>
+            <${Heading} level=${2}><${Fa} name="chart-pie" /> Stack Builder<//>
+            <div className="builder">
+              <${VStack} gap=${3}>
+                <${Heading} level=${3}>Holdings<//>
+                <${VStack} gap=${2}>
+                  ${holdings.map((h) => html`
+                    <div className="holding" key=${h.id}>
+                      <${Typeahead} label="Ticker" isLabelHidden size="sm" placeholder="Ticker"
+                        searchSource=${source} hasEntriesOnFocus
+                        value=${h.ticker ? { id: h.ticker, label: h.ticker, name: '' } : null}
+                        onChange=${(item) => { delete typed.current[h.id]; update(h.id, { ticker: item ? item.id : '' }); }}
+                        onChangeQuery=${(text) => { typed.current[h.id] = text; }}
+                        onBlur=${() => commitTyped(h.id)}
+                        renderItem=${(item) => html`<span><strong>${item.label}</strong> <${Text} color="secondary" type="supporting">${item.name}<//></span>`} />
+                      <${NumberInput} label="Weight" isLabelHidden size="sm" units="%" min=${0} max=${1000} step=${5}
+                        value=${h.weight} onChange=${(weight) => update(h.id, { weight })} />
+                      <${IconButton} size="sm" variant="ghost" label=${`Remove ${h.ticker || 'holding'}`}
+                        icon=${html`<${Fa} name="trash-can" />`} onClick=${() => setHoldings(holdings.filter((x) => x.id !== h.id))} />
+                    </div>`)}
+                <//>
+                <${HStack} gap=${2}>
+                  <span className="go">
+                    <${Button} size="sm" variant="primary" label="Add holding" icon=${html`<${Fa} name="plus" />`}
+                      onClick=${() => setHoldings([...holdings, { id: nextId++, ticker: '', weight: 0 }])} />
+                  </span>
+                  <span className="red">
+                    <${Button} size="sm" variant="primary" label="Reset" icon=${html`<${Fa} name="rotate-left" />`}
+                      isDisabled=${isDefault} onClick=${() => setHoldings(withIds(PA.DEFAULT_PORTFOLIO))} />
+                  </span>
+                <//>
+                ${!weightOk && !overweight && html`<div><${Badge} variant="error" icon=${html`<${Fa} name="triangle-exclamation" />`}
+                  label=${`Weights sum to ${PA.formatPct(result.weight)}`} /></div>`}
+              <//>
+              ${overweight ? html`
+                <${Banner} status="error" title=${`Weights sum to ${PA.formatPct(result.weight)}`}
+                  description="Weights cannot exceed 100% of NAV. Reduce them to see the exposure." />` : html`
+              <${VStack} gap=${3}>
+                <${Heading} level=${3}>Exposure<//>
+                ${result.rows.length > 0 && html`
+                  <${Table} data=${[...result.rows, { what: 'Gross', pct: result.total, normalized: 100, total: true }]}
+                    idKey="what" columns=${EXPOSURE_COLUMNS} density="compact" dividers="grid" />`}
+              <//>
+              <div className="donut-col">${result.rows.length > 0 && html`<${Donut} result=${result} />`}</div>
+`}
+            </div>
+          <//>
+        <//>`;
+    }
+
+    // The table needs this much page width to show each row on one line with no horizontal scroll.
+    const ONE_LINE = '(min-width: 1300px)';
+    function useMedia(query) {
+      const [on, setOn] = useState(() => matchMedia(query).matches);
+      useEffect(() => {
+        const media = matchMedia(query);
+        const update = () => setOn(media.matches);
+        media.addEventListener('change', update);
+        return () => media.removeEventListener('change', update);
+      }, [query]);
+      return on;
+    }
+
+    function EtfTable({ etfs }) {
+      const oneLine = useMedia(ONE_LINE);
+      const [query, setQuery] = useHashState('q', '');
+      const [showClosed, setShowClosed] = useHashState('closed', false, (text) => text === '1', (on) => (on ? '1' : ''));
+      const [hideUpcoming, setHideUpcoming] = useHashState('upcoming', false, (text) => text === '0', (on) => (on ? '0' : ''));
+      const [leverage, setLeverage] = useHashState('lev', LEVERAGE, decodeLeverage, encodeLeverage);
+      const [collapsed, setCollapsed] = useHashState('collapsed', new Set(), decodeGroups, encodeGroups);
+
+      const rows = useMemo(() => etfs
+        .filter((e) => (showClosed || !e.closed) && !(hideUpcoming && e.upcoming) && PA.matches(e, query))
+        .map((e) => ({ ...e, key: e.symbol, leverage: PA.leverage(e), category: PA.categoryOf(e) }))
+        // Compare at 2 decimals, the precision that the Leverage column shows.
+        .filter((e) => +e.leverage.toFixed(2) >= leverage[0] && +e.leverage.toFixed(2) <= leverage[1]),
+        [etfs, query, showClosed, hideUpcoming, leverage]);
+
+      // etf.json is in alphabetical order. Number the rows in display order: group by group.
+      const numbered = useMemo(() => PA.CATEGORIES
+        .flatMap((category) => rows.filter((row) => row.category === category))
+        .map((row, i) => ({ ...row, n: i + 1 })), [rows]);
+      const grouped = useTableGroupedRows({
+        data: numbered,
+        groupBy: (row) => row.category,
+        groupOrder: PA.CATEGORIES,
+        getRowKey: (row) => row.key,
+        collapsedGroups: collapsed,
+        onToggleGroup: (group) => setCollapsed((old) => {
+          const next = new Set(old);
+          next.has(group) ? next.delete(group) : next.add(group);
+          return next;
+        }),
+        renderGroupHeader: (group, count) => html`<${Tooltip} content=${PA.CATEGORY_HOVER[group]}>
+          <span className="group-head">${group} <${Badge} label=${String(count)} /></span><//>`,
+      });
+
+      const columns = useMemo(() => [
+        {
+          key: 'n', header: '#', align: 'end', width: { type: 'pixel', value: 48 },
+          renderCell: (e) => html`<${Text} color="secondary"><span className="num">${e.n}</span><//>`,
+        },
+        {
+          key: 'ticker', header: 'Ticker', width: { type: 'pixel', value: 152 },
+          renderCell: (e) => html`
+            <span className="chips">
+              <span className=${e.closed ? 'closed' : ''}>
+                <${Link} href=${e.filing} target="_blank" rel="noopener" weight="semibold" tooltip=${e.ticker ? 'SEC filing' : 'No ticker assigned yet. Opens the SEC filing.'}>${e.symbol}<//>
+              </span>
+              ${e.upcoming && html`<${Badge} variant="info" label="Upcoming" />`}
+              ${e.closed && html`<${Badge} variant="error" label="Closed" />`}
+            </span>`,
+        },
+        {
+          key: 'name', header: 'Name', width: oneLine ? { type: 'pixel', value: 372 } : { type: 'proportional', value: 3, minWidth: 160 },
+          renderCell: (e) => html`
+            <span className=${e.closed ? 'closed' : ''}>
+              <${Link} href=${e.url} target="_blank" rel="noopener" color="primary" hasUnderline
+                tooltip=${e.closed ? 'Closure notice' : e.upcoming ? 'Announcement or filing' : 'Fund page'}>${e.name}<//>
+            </span>`,
+        },
+        {
+          key: 'allocation', header: 'Allocation', width: { type: 'proportional', value: 4, minWidth: oneLine ? 604 : 200 },
+          renderCell: (e) => html`
+            <span className="chips">
+              ${e.allocation.map((a, i) => html`<${React.Fragment} key=${a.what}>
+                ${i > 0 && html`<span className="plus">+</span>`}<${Chip} pct=${a.pct} what=${a.what} onPick=${setQuery} />
+              <//>`)}
+            </span>`,
+        },
+        {
+          key: 'leverage', header: 'Leverage', align: 'end', width: { type: 'pixel', value: 90 },
+          renderCell: (e) => html`<span className="num">${e.leverage.toFixed(2)}x</span>`,
+        },
+      ], [oneLine]);
+
+      return html`
+        <${Card} padding=${5}>
+          <${VStack} gap=${4}>
+            <${HStack} vAlign="center" gap=${4}>
+              <${Heading} level=${2}><${Fa} name="layer-group" /> ETFs<//>
+              <span className="red">
+                <${Button} size="sm" variant="primary" label="Suggest an edit" icon=${html`<${Fa} name="pen-to-square" />`}
+                  href=${`${REPO}/edit/main/etf.json`} target="_blank" rel="noopener" />
+              </span>
+            <//>
+            <div className="toolbar">
+              <${TextInput} type="search" label="Search" isLabelHidden hasClear startIcon=${SearchIcon}
+                placeholder="Search" value=${query} onChange=${setQuery} />
+              <div className="switches">
+                <div className="leverage">
+                  <${Text} type="label">Leverage<//>
+                  <${Slider} label="Leverage" isLabelHidden min=${LEVERAGE[0]} max=${LEVERAGE[1]} step=${0.25} width=${260}
+                    value=${leverage} valueDisplay="none" formatValue=${(v) => `${v}x`}
+                    marks=${LEVERAGE_TICKS.map((value) => (leverage.includes(value) ? { value, label: `${value}x` } : { value }))}
+                    onChange=${(v) => setLeverage(v.map((n) => Math.round(n * 4) / 4))} />
+                </div>
+                <${Switch} label="Hide upcoming" value=${hideUpcoming} onChange=${setHideUpcoming} />
+                <${Switch} label="Show closed" value=${showClosed} onChange=${setShowClosed} />
+              </div>
+            </div>
+            <${Table} className=${oneLine ? 'etfs one-line' : 'etfs'} data=${grouped.data} idKey=${grouped.idKey} columns=${columns} density="compact" dividers="grid" hasHover
+              plugins=${{ group: grouped.plugin }} />
+          <//>
+        <//>`;
+    }
+
+    function App({ etfs }) {
+      const [holdings, setHoldings] = useHashState('p', withIds(PA.DEFAULT_PORTFOLIO),
+        (text) => { const list = PA.decodePortfolio(text); return list && withIds(list); },
+        (list) => { const text = PA.encodePortfolio(list); return text === PA.encodePortfolio(PA.DEFAULT_PORTFOLIO) ? '' : text; });
+
+      return html`
+        <${VStack} gap=${5}>
+          <${HStack} hAlign="between" vAlign="center" gap=${3}>
+            <${HStack} gap=${3} vAlign="center">
+              <${Fa} name="layer-plus" className="brand-icon" />
+              <${VStack} gap=${0}>
+                <${Heading} level=${1}>Portable Alpha ETFs<//>
+                <${Text} color="secondary">US-listed ETFs only. No mutual funds, non-US listings or UCITS.<//>
+              <//>
+            <//>
+            <${HStack} gap=${1}>
+              <${IconButton} variant="ghost" label="GitHub repository" tooltip="GitHub repository"
+                icon=${html`<i className="fa-brands fa-github" aria-hidden="true"></i>`} href=${REPO} target="_blank" rel="noopener" />
+              <${ThemeButton} />
+            <//>
+          <//>
+          <${Portfolio} etfs=${etfs} holdings=${holdings} setHoldings=${setHoldings} />
+          <${EtfTable} etfs=${etfs} />
+        <//>`;
+    }
+
+    const root = createRoot(document.getElementById('root'));
+    try {
+      const response = await fetch('etf.json');
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      root.render(html`<${App} etfs=${PA.withSymbols(await response.json())} />`);
+    } catch (error) {
+      root.render(html`<div className="boot">Could not load etf.json (${String(error.message)}).</div>`);
+    }
+  </script>
+</body>
+</html>

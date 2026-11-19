@@ -75,7 +75,7 @@ Your task is to make `etf.json` agree with the facts of today.
 6. Run the tests, then run the check again. Continue until the tests pass and each remaining flag has an explanation.
 
    ```bash
-   node --test tests/*.test.mjs
+   make test
    ```
 
 7. If the user gave you a list of funds, compare each one with `etf.json`. Do not leave out a fund because

@@ -4,6 +4,11 @@ This repository keeps a list of portable alpha (also known as return stacked) ET
 
 See: <https://pathikrit.github.io/portable-alpha-etfs/>.
 
+## Running locally
+```sh
+make dev
+```
+
 ## Update ETF listing
 
 [Click here](https://github.com/pathikrit/portable-alpha-etfs/edit/main/etf.json)

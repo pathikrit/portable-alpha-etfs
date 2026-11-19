@@ -57,6 +57,7 @@
     .donut-col { display: grid; place-items: center; }
     .builder > .astryx-banner { grid-column: 2 / -1; align-self: start; border-inline-start: 0; }
     .go { --color-accent: var(--color-success); --color-on-accent: var(--color-on-success); }
+    .red { --color-accent: var(--color-error); --color-on-accent: var(--color-on-error); }
     .donut { position: relative; width: min(100%, 400px); aspect-ratio: 1; }
     .donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
     .donut-value { font-size: 48px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
@@ -548,8 +549,10 @@
           <${VStack} gap=${4}>
             <${HStack} hAlign="between" vAlign="center" gap=${3}>
               <${Heading} level=${2}><${Fa} name="layer-group" /> ETFs<//>
-              <${Button} label="Suggest an edit" icon=${html`<${Fa} name="pen-to-square" />`}
-                href=${`${REPO}/edit/main/etf.json`} target="_blank" rel="noopener" />
+              <span className="red">
+                <${Button} variant="primary" label="Suggest an edit" icon=${html`<${Fa} name="pen-to-square" />`}
+                  href=${`${REPO}/edit/main/etf.json`} target="_blank" rel="noopener" />
+              </span>
             <//>
             <div className="toolbar">
               <${TextInput} type="search" label="Search" isLabelHidden hasClear startIcon=${SearchIcon}

@@ -54,6 +54,13 @@ test('each allocation has parts with a positive pct and a what', () => {
   }
 });
 
+test('each allocation is in order: largest pct first, then by what', () => {
+  for (const etf of etfs) {
+    const sorted = [...etf.allocation].sort((a, b) => b.pct - a.pct || (a.what < b.what ? -1 : 1));
+    assert.deepEqual(etf.allocation, sorted, label(etf));
+  }
+});
+
 test('tickers and names are unique', () => {
   const tickers = etfs.map((etf) => etf.ticker).filter(Boolean);
   assert.equal(new Set(tickers).size, tickers.length);

@@ -590,10 +590,10 @@
       return html`
         <${Card} padding=${5}>
           <${VStack} gap=${4}>
-            <${HStack} hAlign="between" vAlign="center" gap=${3}>
+            <${HStack} vAlign="center" gap=${4}>
               <${Heading} level=${2}><${Fa} name="layer-group" /> ETFs<//>
               <span className="red">
-                <${Button} variant="primary" label="Suggest an edit" icon=${html`<${Fa} name="pen-to-square" />`}
+                <${Button} size="sm" variant="primary" label="Suggest an edit" icon=${html`<${Fa} name="pen-to-square" />`}
                   href=${`${REPO}/edit/main/etf.json`} target="_blank" rel="noopener" />
               </span>
             <//>

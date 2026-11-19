@@ -20,11 +20,16 @@ async function quote(ticker) {
   const url = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?range=5d&interval=1d`;
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
-      const meta = (await getJson(url, { 'User-Agent': 'Mozilla/5.0' })).chart.result[0].meta;
+      const result = (await getJson(url, { 'User-Agent': 'Mozilla/5.0' })).chart.result[0];
+      const meta = result.meta;
       // A delisted fund can keep an empty record that has no price and no trade time.
       if (!meta.regularMarketTime || meta.regularMarketPrice == null) return null;
-      const days = (Date.now() / 1000 - meta.regularMarketTime) / 86400;
-      return { days, date: new Date(meta.regularMarketTime * 1000).toISOString().slice(0, 10), name: meta.longName || meta.shortName || '' };
+      // For a fund that trades little, regularMarketTime can be days old. The daily bars are more reliable.
+      const volumes = result.indicators?.quote?.[0]?.volume || [];
+      const traded = (result.timestamp || []).filter((_, i) => volumes[i] > 0);
+      const last = Math.max(meta.regularMarketTime, ...traded);
+      const days = (Date.now() / 1000 - last) / 86400;
+      return { days, date: new Date(last * 1000).toISOString().slice(0, 10), name: meta.longName || meta.shortName || '' };
     } catch (error) {
       if (error.status === 404) return null;
       await sleep(1500 * (attempt + 1));

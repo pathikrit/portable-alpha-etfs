@@ -306,6 +306,24 @@
     ]
   },
   {
+    "ticker": "GMIX",
+    "name": "iShares Macro AlphaBeta Active",
+    "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000109945&type=485",
+    "closed": false,
+    "url": "https://www.ishares.com/us/products/354518/ishares-macro-alphabeta-active-etf",
+    "upcoming": false,
+    "allocation": [
+      {
+        "pct": 100,
+        "what": "Macro"
+      },
+      {
+        "pct": 100,
+        "what": "SPY"
+      }
+    ]
+  },
+  {
     "ticker": "GOLY",
     "name": "Strategy Shares Gold Enhanced Yield",
     "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000070448&type=485",

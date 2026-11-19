@@ -65,10 +65,12 @@
     .chip {
       display: inline-flex; align-items: center; white-space: nowrap; line-height: 1.5;
       padding: 0 8px; border-radius: 999px; font-size: 12px; font-weight: 500;
-      color: var(--color-text-primary);
+      color: var(--color-text-primary); font-family: inherit; cursor: pointer;
       background: color-mix(in srgb, var(--c) 42%, transparent);
       border: 1px solid color-mix(in srgb, var(--c) 85%, transparent);
     }
+    .chip:hover { background: color-mix(in srgb, var(--c) 65%, transparent); }
+    .chip:focus-visible { outline: 2px solid var(--color-text-primary); outline-offset: 1px; }
     .plus { color: var(--color-text-secondary); font-size: 12px; }
     .holding { display: grid; grid-template-columns: 108px 88px auto; gap: 8px; align-items: center; justify-content: start; }
     .builder { display: grid; grid-template-columns: auto minmax(300px, 380px) minmax(0, 1fr); gap: 48px; align-items: stretch; }
@@ -298,9 +300,11 @@
     const SearchIcon = () => html`<${Fa} name="magnifying-glass" />`;
     const cssColor = (what) => `var(--c-${PA.colorOf(what)})`;
 
-    function Chip({ pct, what }) {
+    // A click on a tag searches for its asset.
+    function Chip({ pct, what, onPick }) {
       const label = pct == null ? what : `${PA.formatPct(pct)} ${what}`;
-      const badge = html`<span className="chip" style=${{ '--c': cssColor(what) }}>${label}</span>`;
+      const badge = html`<button type="button" className="chip" style=${{ '--c': cssColor(what) }}
+        aria-label=${`Search for ${what}`} onClick=${() => onPick(what)}>${label}</button>`;
       const hover = PA.hoverText(what);
       return hover === what ? badge : html`<${Tooltip} content=${hover}>${badge}<//>`;
     }
@@ -577,7 +581,7 @@
           renderCell: (e) => html`
             <span className="chips">
               ${e.allocation.map((a, i) => html`<${React.Fragment} key=${a.what}>
-                ${i > 0 && html`<span className="plus">+</span>`}<${Chip} pct=${a.pct} what=${a.what} />
+                ${i > 0 && html`<span className="plus">+</span>`}<${Chip} pct=${a.pct} what=${a.what} onPick=${setQuery} />
               <//>`)}
             </span>`,
         },

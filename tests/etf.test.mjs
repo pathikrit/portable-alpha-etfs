@@ -112,6 +112,16 @@ test('portfolio exposure: 40% RSSX + 30% RSBT + 30% AVUV', () => {
   assert.ok(Math.abs(normalized - 100) < 1e-9);
 });
 
+test('exposure rows are grouped by color, and sorted by size within a color', () => {
+  const list = [
+    { ticker: 'AAA', allocation: [{ pct: 10, what: 'BIL' }, { pct: 50, what: 'GOVT' }, { pct: 20, what: 'Gold' }, { pct: 30, what: 'CTA' }] },
+    { ticker: 'BBB', allocation: [{ pct: 5, what: 'SPY' }, { pct: 40, what: 'AVUV' }, { pct: 15, what: 'MF' }, { pct: 25, what: 'AHLT' }, { pct: 60, what: 'BTC' }] },
+  ];
+  const result = PA.exposures([{ ticker: 'AAA', weight: 40 }, { ticker: 'BBB', weight: 40 }, { ticker: 'ZZZZ', weight: 20 }], list);
+  assert.deepEqual(Array.from(result.rows, (row) => row.what), ['SPY', 'AVUV', 'AHLT', 'MF', 'BTC', 'CTA', 'Gold', 'GOVT', 'BIL', 'ZZZZ']);
+  for (const [, color] of Object.values(PA.WHAT)) assert.ok(PA.COLOR_ORDER.includes(color), color);
+});
+
 test('a fund that has no ticker gets a TBD symbol that works in a portfolio', () => {
   const list = PA.withSymbols([
     { ticker: 'AAA', allocation: [{ pct: 100, what: 'SPY' }, { pct: 100, what: 'MF' }] },

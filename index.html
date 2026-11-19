@@ -203,6 +203,9 @@
 
       const hoverText = (what) => (WHAT[what] || [what])[0];
       const colorOf = (what) => (WHAT[what] || [what, 'other'])[1];
+      // Order of the asset classes in the exposure table and the pie. Neighbors have similar hues:
+      // blues, purples, red, gold, green, gray.
+      const COLOR_ORDER = ['large', 'global', 'small', 'longshort', 'futures', 'crypto', 'commodity', 'bond', 'other'];
 
       const totalPct = (etf) => etf.allocation.reduce((sum, a) => sum + a.pct, 0);
       const leverage = (etf) => totalPct(etf) / 100;
@@ -245,8 +248,10 @@
           else add(ticker, w);
         }
         const total = [...sums.values()].reduce((a, b) => a + b, 0);
+        // By color, in COLOR_ORDER, then by size. The table and the pie both use this order.
+        const rank = (row) => COLOR_ORDER.indexOf(colorOf(row.what));
         const rows = [...sums].map(([what, pct]) => ({ what, pct, normalized: total ? (pct / total) * 100 : 0 }))
-          .sort((a, b) => b.pct - a.pct);
+          .sort((a, b) => rank(a) - rank(b) || b.pct - a.pct);
         // Leverage is against NAV: holdings that add to less than 100% leave the remainder in cash.
         return { rows, total, weight, leverage: total / 100 };
       }
@@ -268,7 +273,7 @@
       }
 
       return {
-        CATEGORIES, CATEGORY_HOVER, WHAT, hoverText, colorOf, leverage, categoryOf, formatPct, allocationText, matches,
+        CATEGORIES, CATEGORY_HOVER, WHAT, COLOR_ORDER, hoverText, colorOf, leverage, categoryOf, formatPct, allocationText, matches,
         exposures, withSymbols, DEFAULT_PORTFOLIO, encodePortfolio, decodePortfolio,
       };
     })();

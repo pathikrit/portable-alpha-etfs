@@ -66,12 +66,14 @@
   <!-- Pure logic. No DOM access here: tests/ loads this block and runs it in Node. -->
   <script id="logic">
     const PA = (() => {
-      const CATEGORIES = [
-        'Classic combos (equities/bonds/gold), >1.75x leverage',
-        'Classic combos, ≤1.75x leverage',
-        'Managed futures (incl. CTAs and carry)',
-        'Crypto',
-      ];
+      // Group name -> hover text.
+      const CATEGORY_HOVER = {
+        'Classic Combos >1.75x': 'Equities, bonds and gold with more than 1.75x leverage',
+        'Classic Combos <1.75x': 'Equities, bonds and gold with 1.75x leverage or less',
+        'Managed Futures': 'Managed futures, CTAs, carry, macro etc.',
+        'Crypto': 'BTC, ETH etc.',
+      };
+      const CATEGORIES = Object.keys(CATEGORY_HOVER);
 
       // Known values of allocation[].what: [hover text, color]. A value that is not here shows as-is, in gray.
       const WHAT = {
@@ -128,7 +130,7 @@
         LTPZ: ['Long-term TIPS', 'teal'],
       };
       const CRYPTO = new Set(['BTC', 'ETH']);
-      const isManagedFutures = (what) => (WHAT[what] || [])[1] === 'purple' && what !== 'Macro';
+      const isManagedFutures = (what) => (WHAT[what] || [])[1] === 'purple';
 
       const hoverText = (what) => (WHAT[what] || [what])[0];
       const colorOf = (what) => (WHAT[what] || [what, 'gray'])[1];
@@ -197,7 +199,7 @@
       }
 
       return {
-        CATEGORIES, WHAT, hoverText, colorOf, leverage, categoryOf, formatPct, allocationText, matches,
+        CATEGORIES, CATEGORY_HOVER, WHAT, hoverText, colorOf, leverage, categoryOf, formatPct, allocationText, matches,
         exposures, DEFAULT_PORTFOLIO, encodePortfolio, decodePortfolio,
       };
     })();
@@ -453,7 +455,8 @@
           next.has(group) ? next.delete(group) : next.add(group);
           return next;
         }),
-        renderGroupHeader: (group, count) => html`<span className="group-head">${group} <${Badge} label=${String(count)} /></span>`,
+        renderGroupHeader: (group, count) => html`<${Tooltip} content=${PA.CATEGORY_HOVER[group]}>
+          <span className="group-head">${group} <${Badge} label=${String(count)} /></span><//>`,
       });
 
       const columns = useMemo(() => [

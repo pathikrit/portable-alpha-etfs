@@ -27,8 +27,8 @@ Your task is to make `etf.json` agree with the facts of today.
 - `allocation`: a list of `{"pct": 100, "what": "SPY"}`. `pct` is a number. `what` is a well-known ticker
   for the exposure (SPY, GOVT) or a label (Gold, MF, BTC). Use labels that are already in the file where possible.
   `index.html` has the hover text and the color of each label in `WHAT`. Add new labels there.
-- The page calculates the category from the allocation: BTC or ETH gives "Crypto related",
-  MF, CTA or Carry gives "Managed futures", and the remaining funds divide at 1.75x.
+- The page calculates the group from the allocation: BTC or ETH gives "Crypto";
+  MF, CTA, Carry or Macro gives "Managed Futures"; the remaining funds are "Classic Combos", divided at 1.75x leverage.
 
 ## Procedure
 

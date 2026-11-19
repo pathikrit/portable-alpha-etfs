@@ -52,8 +52,10 @@
     .etfs td:nth-child(2) .chips > * { flex-shrink: 0; }
     .plus { color: var(--color-text-secondary); font-size: 12px; }
     .holding { display: grid; grid-template-columns: 108px 88px auto; gap: 8px; align-items: center; justify-content: start; }
-    .builder { display: grid; grid-template-columns: minmax(0, 400px) minmax(0, 1fr); gap: 40px; align-items: center; }
-    .donut { position: relative; width: min(100%, 400px); aspect-ratio: 1; justify-self: center; }
+    .builder { display: grid; grid-template-columns: auto minmax(300px, 380px) minmax(0, 1fr); gap: 48px; align-items: stretch; }
+    .builder > * + * { border-inline-start: 1px solid var(--color-border); padding-inline-start: 48px; }
+    .donut-col { display: grid; place-items: center; }
+    .donut { position: relative; width: min(100%, 400px); aspect-ratio: 1; }
     .donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
     .donut-value { font-size: 48px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
     .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-inline-end: 8px; background: var(--swatch); }
@@ -62,9 +64,9 @@
     .toolbar > :first-child { flex: 1 1 260px; max-width: 420px; }
     .switches { display: flex; flex-wrap: wrap; gap: 20px; align-items: center; }
     .group-head { display: inline-flex; gap: 8px; align-items: center; font-weight: 600; }
-    @media (max-width: 820px) {
-      .holding { grid-template-columns: minmax(0, 1fr) 100px auto; }
+    @media (max-width: 1100px) {
       .builder { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+      .builder > * + * { border-inline-start: 0; padding-inline-start: 0; border-top: 1px solid var(--color-border); padding-top: 24px; }
     }
   </style>
 </head>
@@ -408,6 +410,7 @@
             <${Heading} level=${2}><${Fa} name="chart-pie" /> Stack Builder<//>
             <div className="builder">
               <${VStack} gap=${3}>
+                <${Heading} level=${3}>Holdings<//>
                 <${VStack} gap=${2}>
                   ${holdings.map((h) => html`
                     <div className="holding" key=${h.id}>
@@ -430,11 +433,14 @@
                 <//>
                 ${!weightOk && html`<div><${Badge} variant="error" icon=${html`<${Fa} name="triangle-exclamation" />`}
                   label=${`Weights sum to ${PA.formatPct(result.weight)}`} /></div>`}
+              <//>
+              <${VStack} gap=${3}>
+                <${Heading} level=${3}>Exposure<//>
                 ${result.rows.length > 0 && html`
                   <${Table} data=${[...result.rows, { what: 'Gross', pct: result.total, normalized: 100, total: true }]}
                     idKey="what" columns=${EXPOSURE_COLUMNS} density="compact" dividers="grid" />`}
               <//>
-              ${result.rows.length > 0 && html`<${Donut} result=${result} />`}
+              <div className="donut-col">${result.rows.length > 0 && html`<${Donut} result=${result} />`}</div>
             </div>
           <//>
         <//>`;
@@ -508,7 +514,7 @@
           renderCell: (e) => html`
             <span className=${e.closed ? 'closed' : ''}>
               <${Link} href=${e.url} target="_blank" rel="noopener" color="primary" hasUnderline
-                tooltip=${e.closed ? 'Closure notice' : 'Fund page'}>${e.name}<//>
+                tooltip=${e.closed ? 'Closure notice' : e.upcoming ? 'Announcement or filing' : 'Fund page'}>${e.name}<//>
             </span>`,
         },
         {
@@ -564,7 +570,7 @@
             <//>
             <${HStack} gap=${1}>
               <${IconButton} variant="ghost" label="Edit ETFs" tooltip="Edit ETFs"
-                icon=${html`<${Fa} name="code-pull-request" />`} href=${REPO} target="_blank" rel="noopener" />
+                icon=${html`<${Fa} name="code-pull-request" />`} href=${`${REPO}/edit/main/etf.json`} target="_blank" rel="noopener" />
               <${ThemeButton} />
             <//>
           <//>

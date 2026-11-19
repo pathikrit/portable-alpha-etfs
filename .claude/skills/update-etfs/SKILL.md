@@ -21,7 +21,8 @@ Your task is to make `etf.json` agree with the facts of today.
   `https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=<series ID>&type=485`.
   If there is no series ID, link to the filing index page.
 - `url`: the fund page on the issuer's site. For a closed fund, the closure notice
-  (the SEC 497 supplement or the issuer's press release). For an upcoming fund that has no page, the filing.
+  (the SEC 497 supplement or the issuer's press release). For an upcoming fund that has no page, a post on X or
+  LinkedIn that tells about the filing. If there is no such post, the prospectus document on sec.gov.
 - The entries are in alphabetical order by `ticker`. Funds that have no ticker are last, in order by `name`.
 - `closed` and `upcoming` are booleans. They are never `true` at the same time.
 - `allocation`: a list of `{"pct": 100, "what": "SPY"}`. `pct` is a number. `what` is a well-known ticker

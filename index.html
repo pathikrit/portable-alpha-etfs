@@ -27,7 +27,10 @@
         "react-dom/client": "https://esm.sh/react-dom@19.2.0/client",
         "@astryxdesign/core": "https://esm.sh/@astryxdesign/core@0.7.16?external=react,react-dom",
         "htm": "https://esm.sh/htm@3.1.1",
-        "chart.js/auto": "https://esm.sh/chart.js@4.4.7/auto"
+        "chart.js": "https://esm.sh/chart.js@4.4.7",
+        "chart.js/auto": "https://esm.sh/chart.js@4.4.7/auto",
+        "chart.js/helpers": "https://esm.sh/chart.js@4.4.7/helpers",
+        "chartjs-plugin-datalabels": "https://esm.sh/chartjs-plugin-datalabels@2.2.0?external=chart.js"
       }
     }
   </script>
@@ -45,18 +48,19 @@
     .chips { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
     .plus { color: var(--color-text-secondary); font-size: 12px; }
     .holding { display: grid; grid-template-columns: 170px 110px auto; gap: 8px; align-items: center; justify-content: start; }
-    .exposure { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 32px; align-items: center; }
-    .donut { position: relative; width: 240px; height: 240px; }
+    .builder { display: grid; grid-template-columns: minmax(0, 400px) minmax(0, 1fr); gap: 40px; align-items: center; }
+    .donut { position: relative; width: min(100%, 400px); aspect-ratio: 1; justify-self: center; }
     .donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
-    .donut-value { font-size: 40px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+    .donut-value { font-size: 48px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
     .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-inline-end: 8px; background: var(--swatch); }
     .num { font-variant-numeric: tabular-nums; }
     .toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
     .toolbar > :first-child { flex: 1 1 260px; max-width: 420px; }
+    .switches { display: flex; flex-wrap: wrap; gap: 20px; }
     .group-head { display: inline-flex; gap: 8px; align-items: center; font-weight: 600; }
-    @media (max-width: 640px) {
+    @media (max-width: 820px) {
       .holding { grid-template-columns: minmax(0, 1fr) 100px auto; }
-      .exposure { grid-template-columns: 1fr; justify-items: center; }
+      .builder { grid-template-columns: minmax(0, 1fr); gap: 24px; }
     }
   </style>
 </head>
@@ -210,9 +214,10 @@
     import { createRoot } from 'react-dom/client';
     import htm from 'htm';
     import Chart from 'chart.js/auto';
+    import ChartDataLabels from 'chartjs-plugin-datalabels';
     import {
       Badge, Button, Card, Heading, HStack, IconButton, Link, NumberInput, Switch, Table, Text, TextInput,
-      Tooltip, Typeahead, VStack, useTableGroupedRows, useTableSortable, useTableSortableState,
+      Tooltip, Typeahead, VStack, useTableGroupedRows,
     } from '@astryxdesign/core';
 
     const { useEffect, useMemo, useRef, useState } = React;
@@ -220,7 +225,7 @@
     const REPO = 'https://github.com/pathikrit/portable-alpha-etfs';
 
     // All UI state lives in the URL hash, so that each view has a link:
-    // #p=RSSX:40,RSBT:30&q=gold&closed=1&sort=name:desc&collapsed=0,2&theme=dark
+    // #p=RSSX:40,RSBT:30&q=gold&closed=1&upcoming=0&collapsed=0,2&theme=dark
     // A value that is the default is not written.
     const hashParams = () => new URLSearchParams(location.hash.slice(1));
     function setHashParam(key, value) {
@@ -237,16 +242,6 @@
       useEffect(() => setHashParam(key, encode(value)), [key, value]);
       return [value, setValue];
     }
-    const DEFAULT_SORT = 'ticker:asc';
-    const decodeSort = (text) => {
-      const [sortKey, direction] = text.split(':');
-      return ['ticker', 'name', 'leverage'].includes(sortKey)
-        ? [{ sortKey, direction: direction === 'desc' ? 'descending' : 'ascending' }] : null;
-    };
-    const encodeSort = (sort) => {
-      const text = sort.map((s) => `${s.sortKey}:${s.direction === 'descending' ? 'desc' : 'asc'}`).join('');
-      return text === DEFAULT_SORT ? '' : text;
-    };
     const decodeGroups = (text) => new Set(text.split(',').map((i) => PA.CATEGORIES[i]).filter(Boolean));
     const encodeGroups = (groups) => PA.CATEGORIES.map((c, i) => (groups.has(c) ? i : null)).filter((i) => i != null).join(',');
 
@@ -301,25 +296,38 @@
             borderColor: resolveColor('var(--color-background-card)'),
             borderWidth: 2,
             hoverOffset: 4,
+            share: [...result.rows.map((r) => r.normalized), 0],
           }],
         };
+        const ink = resolveColor('var(--color-background-card)');
         if (!chart.current) {
           chart.current = new Chart(canvas.current, {
             type: 'doughnut',
             data,
+            plugins: [ChartDataLabels],
             options: {
-              cutout: '62%', animation: { duration: 250 }, layout: { padding: 4 },
+              cutout: '50%', animation: { duration: 250 }, layout: { padding: 4 },
               plugins: {
                 legend: { display: false },
+                // A slice that is too small for its label shows it on hover only.
+                datalabels: {
+                  display: (ctx) => ctx.dataset.share[ctx.dataIndex] >= 6,
+                  formatter: (value, ctx) => `${ctx.chart.data.labels[ctx.dataIndex]}\n${PA.formatPct(ctx.dataset.share[ctx.dataIndex])}`,
+                  color: ink, textAlign: 'center', font: { weight: 600, size: 13, family: 'Figtree, sans-serif' },
+                },
                 tooltip: {
                   filter: (item) => item.label !== 'Unallocated',
-                  callbacks: { label: (item) => ` ${PA.formatPct(item.parsed)} of NAV (${PA.hoverText(item.label)})` },
+                  callbacks: {
+                    title: (items) => items.map((item) => PA.hoverText(item.label) === item.label ? item.label : `${item.label}: ${PA.hoverText(item.label)}`),
+                    label: (item) => [` ${PA.formatPct(item.parsed)} of NAV`, ` ${PA.formatPct(item.dataset.share[item.dataIndex])} of gross`],
+                  },
                 },
               },
             },
           });
         } else {
           chart.current.data = data;
+          chart.current.options.plugins.datalabels.color = ink;
           chart.current.update();
         }
       }, [result, scheme]);
@@ -392,58 +400,49 @@
                   onClick=${() => setHoldings([...holdings, { id: nextId++, ticker: '', weight: 0 }])} />
               <//>
             <//>
-            <${VStack} gap=${2}>
-              ${holdings.map((h) => html`
-                <div className="holding" key=${h.id}>
-                  <${Typeahead} label="Ticker" isLabelHidden size="sm" placeholder="Ticker"
-                    searchSource=${source} hasEntriesOnFocus hasClear
-                    value=${h.ticker ? { id: h.ticker, label: h.ticker, name: '' } : null}
-                    onChange=${(item) => update(h.id, { ticker: item ? item.id : '' })}
-                    renderItem=${(item) => html`<span><strong>${item.label}</strong> <${Text} color="secondary" type="supporting">${item.name}<//></span>`} />
-                  <${NumberInput} label="Weight" isLabelHidden size="sm" units="%" min=${0} max=${1000} step=${5}
-                    value=${h.weight} onChange=${(weight) => update(h.id, { weight })} />
-                  <${IconButton} size="sm" variant="ghost" label=${`Remove ${h.ticker || 'holding'}`}
-                    icon=${html`<${Fa} name="trash-can" />`} onClick=${() => setHoldings(holdings.filter((x) => x.id !== h.id))} />
-                </div>`)}
-            <//>
-            ${!weightOk && html`<div><${Badge} variant="warning" label=${`Weights sum to ${PA.formatPct(result.weight)}`} /></div>`}
-            ${result.rows.length > 0 && html`
-              <div className="exposure">
-                <${Donut} result=${result} />
-                <${Table} data=${[...result.rows, { what: 'Gross', pct: result.total, normalized: 100, total: true }]}
-                  idKey="what" columns=${EXPOSURE_COLUMNS} density="compact" />
-              </div>`}
+            <div className="builder">
+              <${VStack} gap=${3}>
+                <${VStack} gap=${2}>
+                  ${holdings.map((h) => html`
+                    <div className="holding" key=${h.id}>
+                      <${Typeahead} label="Ticker" isLabelHidden size="sm" placeholder="Ticker"
+                        searchSource=${source} hasEntriesOnFocus hasClear
+                        value=${h.ticker ? { id: h.ticker, label: h.ticker, name: '' } : null}
+                        onChange=${(item) => update(h.id, { ticker: item ? item.id : '' })}
+                        renderItem=${(item) => html`<span><strong>${item.label}</strong> <${Text} color="secondary" type="supporting">${item.name}<//></span>`} />
+                      <${NumberInput} label="Weight" isLabelHidden size="sm" units="%" min=${0} max=${1000} step=${5}
+                        value=${h.weight} onChange=${(weight) => update(h.id, { weight })} />
+                      <${IconButton} size="sm" variant="ghost" label=${`Remove ${h.ticker || 'holding'}`}
+                        icon=${html`<${Fa} name="trash-can" />`} onClick=${() => setHoldings(holdings.filter((x) => x.id !== h.id))} />
+                    </div>`)}
+                <//>
+                ${!weightOk && html`<div><${Badge} variant="error" icon=${html`<${Fa} name="triangle-exclamation" />`}
+                  label=${`Weights sum to ${PA.formatPct(result.weight)}`} /></div>`}
+                ${result.rows.length > 0 && html`
+                  <${Table} data=${[...result.rows, { what: 'Gross', pct: result.total, normalized: 100, total: true }]}
+                    idKey="what" columns=${EXPOSURE_COLUMNS} density="compact" />`}
+              <//>
+              ${result.rows.length > 0 && html`<${Donut} result=${result} />`}
+            </div>
           <//>
         <//>`;
     }
 
-    function EtfTable({ etfs, onAdd }) {
+    function EtfTable({ etfs }) {
       const [query, setQuery] = useHashState('q', '');
       const [showClosed, setShowClosed] = useHashState('closed', false, (text) => text === '1', (on) => (on ? '1' : ''));
+      const [hideUpcoming, setHideUpcoming] = useHashState('upcoming', false, (text) => text === '0', (on) => (on ? '0' : ''));
       const [collapsed, setCollapsed] = useHashState('collapsed', new Set(), decodeGroups, encodeGroups);
-      const [sort, setSort] = useHashState('sort', decodeSort(DEFAULT_SORT), decodeSort, encodeSort);
 
       const rows = useMemo(() => etfs
-        .filter((e) => (showClosed || !e.closed) && PA.matches(e, query))
+        .filter((e) => (showClosed || !e.closed) && !(hideUpcoming && e.upcoming) && PA.matches(e, query))
         .map((e) => ({ ...e, key: e.ticker || e.name, leverage: PA.leverage(e), category: PA.categoryOf(e) })),
-        [etfs, query, showClosed]);
+        [etfs, query, showClosed, hideUpcoming]);
 
-      const { sortedData, sortConfig } = useTableSortableState({
-        data: rows,
-        sort,
-        onSortChange: setSort,
-        comparators: {
-          // Funds that have no ticker yet go last.
-          ticker: (a, b) => !a.ticker - !b.ticker || (a.ticker || a.name).localeCompare(b.ticker || b.name),
-          name: (a, b) => a.name.localeCompare(b.name),
-          leverage: (a, b) => a.leverage - b.leverage,
-        },
-      });
-      const sortPlugin = useTableSortable(sortConfig);
-      // Number the rows in display order: group by group.
+      // etf.json is in alphabetical order. Number the rows in display order: group by group.
       const numbered = useMemo(() => PA.CATEGORIES
-        .flatMap((category) => sortedData.filter((row) => row.category === category))
-        .map((row, i) => ({ ...row, n: i + 1 })), [sortedData]);
+        .flatMap((category) => rows.filter((row) => row.category === category))
+        .map((row, i) => ({ ...row, n: i + 1 })), [rows]);
       const grouped = useTableGroupedRows({
         data: numbered,
         groupBy: (row) => row.category,
@@ -465,7 +464,7 @@
           renderCell: (e) => html`<${Text} color="secondary"><span className="num">${e.n}</span><//>`,
         },
         {
-          key: 'ticker', header: 'Ticker', sortable: true, width: { type: 'pixel', value: 170 },
+          key: 'ticker', header: 'Ticker', width: { type: 'pixel', value: 170 },
           renderCell: (e) => html`
             <span className="chips">
               <span className=${e.closed ? 'closed' : ''}>
@@ -476,7 +475,7 @@
             </span>`,
         },
         {
-          key: 'name', header: 'Name', sortable: true, width: { type: 'proportional', value: 3, minWidth: 220 },
+          key: 'name', header: 'Name', width: { type: 'proportional', value: 3, minWidth: 220 },
           renderCell: (e) => html`
             <span className=${e.closed ? 'closed' : ''}>
               <${Link} href=${e.url} target="_blank" rel="noopener" color="primary" hasUnderline
@@ -493,15 +492,10 @@
             </span>`,
         },
         {
-          key: 'leverage', header: 'Leverage', sortable: true, align: 'end', width: { type: 'pixel', value: 110 },
+          key: 'leverage', header: 'Leverage', align: 'end', width: { type: 'pixel', value: 110 },
           renderCell: (e) => html`<span className="num">${e.leverage.toFixed(2)}x</span>`,
         },
-        {
-          key: 'add', header: '', align: 'end', width: { type: 'pixel', value: 56 },
-          renderCell: (e) => e.ticker && html`<${IconButton} size="sm" variant="ghost" label=${`Add ${e.ticker} to portfolio`}
-            tooltip="Add to portfolio" icon=${html`<${Fa} name="circle-plus" />`} onClick=${() => onAdd(e.ticker)} />`,
-        },
-      ], [onAdd]);
+      ], []);
 
       return html`
         <${Card} padding=${5}>
@@ -509,11 +503,14 @@
             <${Heading} level=${2}><${Fa} name="layer-group" /> ETFs<//>
             <div className="toolbar">
               <${TextInput} type="search" label="Search" isLabelHidden hasClear startIcon=${SearchIcon}
-                placeholder="Search ticker, name or exposure" value=${query} onChange=${setQuery} />
-              <${Switch} label="Show closed" value=${showClosed} onChange=${setShowClosed} />
+                placeholder="Search" value=${query} onChange=${setQuery} />
+              <div className="switches">
+                <${Switch} label="Hide upcoming" value=${hideUpcoming} onChange=${setHideUpcoming} />
+                <${Switch} label="Show closed" value=${showClosed} onChange=${setShowClosed} />
+              </div>
             </div>
             <${Table} data=${grouped.data} idKey=${grouped.idKey} columns=${columns} density="compact" hasHover
-              plugins=${{ sort: sortPlugin, group: grouped.plugin }} />
+              plugins=${{ group: grouped.plugin }} />
           <//>
         <//>`;
     }
@@ -522,10 +519,6 @@
       const [holdings, setHoldings] = useHashState('p', withIds(PA.DEFAULT_PORTFOLIO),
         (text) => { const list = PA.decodePortfolio(text); return list && withIds(list); },
         (list) => { const text = PA.encodePortfolio(list); return text === PA.encodePortfolio(PA.DEFAULT_PORTFOLIO) ? '' : text; });
-      const onAdd = React.useCallback((ticker) => {
-        setHoldings((old) => (old.some((h) => h.ticker === ticker) ? old : [...old, { id: nextId++, ticker, weight: 0 }]));
-        scrollTo({ top: 0, behavior: 'smooth' });
-      }, []);
 
       return html`
         <${VStack} gap=${5}>
@@ -544,7 +537,7 @@
             <//>
           <//>
           <${Portfolio} etfs=${etfs} holdings=${holdings} setHoldings=${setHoldings} />
-          <${EtfTable} etfs=${etfs} onAdd=${onAdd} />
+          <${EtfTable} etfs=${etfs} />
         <//>`;
     }
 

@@ -335,7 +335,7 @@
         defaultSort: [{ sortKey: 'ticker', direction: 'ascending' }],
         comparators: {
           // Funds that have no ticker yet go last.
-          ticker: (a, b) => (a.ticker || '~' + a.name).localeCompare(b.ticker || '~' + b.name),
+          ticker: (a, b) => !a.ticker - !b.ticker || (a.ticker || a.name).localeCompare(b.ticker || b.name),
           name: (a, b) => a.name.localeCompare(b.name),
           leverage: (a, b) => a.leverage - b.leverage,
         },

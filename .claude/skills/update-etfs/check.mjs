@@ -21,6 +21,8 @@ async function quote(ticker) {
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
       const meta = (await getJson(url, { 'User-Agent': 'Mozilla/5.0' })).chart.result[0].meta;
+      // A delisted fund can keep an empty record that has no price and no trade time.
+      if (!meta.regularMarketTime || meta.regularMarketPrice == null) return null;
       const days = (Date.now() / 1000 - meta.regularMarketTime) / 86400;
       return { days, date: new Date(meta.regularMarketTime * 1000).toISOString().slice(0, 10), name: meta.longName || meta.shortName || '' };
     } catch (error) {

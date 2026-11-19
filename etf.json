@@ -174,6 +174,60 @@
     ]
   },
   {
+    "ticker": "ISTG",
+    "name": "IncomeSTKd 1x Treasury & 1x Gold Premium ETF",
+    "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000099121&type=485",
+    "closed": false,
+    "url": "https://www.sec.gov/Archives/edgar/data/1924868/000199937125014936/0001999371-25-014936-index.htm",
+    "upcoming": true,
+    "allocation": [
+      {
+        "pct": 100,
+        "what": "GOVT"
+      },
+      {
+        "pct": 100,
+        "what": "Gold"
+      }
+    ]
+  },
+  {
+    "ticker": "ISSG",
+    "name": "IncomeSTKd 1x US Stocks & 1x Gold Premium ETF",
+    "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000099116&type=485",
+    "closed": false,
+    "url": "https://www.sec.gov/Archives/edgar/data/1924868/000199937125014936/0001999371-25-014936-index.htm",
+    "upcoming": true,
+    "allocation": [
+      {
+        "pct": 100,
+        "what": "SPY"
+      },
+      {
+        "pct": 100,
+        "what": "Gold"
+      }
+    ]
+  },
+  {
+    "ticker": "ISST",
+    "name": "IncomeSTKd 1x US Stocks & 1x Treasury Premium ETF",
+    "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000099117&type=485",
+    "closed": false,
+    "url": "https://www.sec.gov/Archives/edgar/data/1924868/000199937125014936/0001999371-25-014936-index.htm",
+    "upcoming": true,
+    "allocation": [
+      {
+        "pct": 100,
+        "what": "SPY"
+      },
+      {
+        "pct": 100,
+        "what": "GOVT"
+      }
+    ]
+  },
+  {
     "ticker": "WTLS",
     "name": "WisdomTree Efficient Long/Short U.S. Equity Fund",
     "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000098570&type=485",
@@ -242,6 +296,60 @@
       {
         "pct": 90,
         "what": "Intl L/S"
+      }
+    ]
+  },
+  {
+    "ticker": "CPMN",
+    "name": "WisdomTree Efficient Copper Plus Copper Miners Fund",
+    "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000110274&type=485",
+    "closed": false,
+    "url": "https://www.sec.gov/Archives/edgar/data/1350487/000121465926010071/0001214659-26-010071-index.htm",
+    "upcoming": true,
+    "allocation": [
+      {
+        "pct": 90,
+        "what": "Copper"
+      },
+      {
+        "pct": 90,
+        "what": "Copper Miners"
+      }
+    ]
+  },
+  {
+    "ticker": null,
+    "name": "Simplify US Equity PLUS Aggregate Bond ETF",
+    "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000113893&type=485",
+    "closed": false,
+    "url": "https://www.sec.gov/Archives/edgar/data/1810747/000182912626011114/0001829126-26-011114-index.htm",
+    "upcoming": true,
+    "allocation": [
+      {
+        "pct": 100,
+        "what": "SPY"
+      },
+      {
+        "pct": 100,
+        "what": "Bonds"
+      }
+    ]
+  },
+  {
+    "ticker": null,
+    "name": "Simplify Global Equity PLUS Aggregate Bond ETF",
+    "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000113891&type=485",
+    "closed": false,
+    "url": "https://www.sec.gov/Archives/edgar/data/1810747/000182912626011114/0001829126-26-011114-index.htm",
+    "upcoming": true,
+    "allocation": [
+      {
+        "pct": 100,
+        "what": "VT"
+      },
+      {
+        "pct": 100,
+        "what": "Bonds"
       }
     ]
   },
@@ -476,6 +584,96 @@
     ]
   },
   {
+    "ticker": "SCTO",
+    "name": "Kurv U.S. Small Cap TaxOptimized ETF",
+    "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000108439&type=485",
+    "closed": false,
+    "url": "https://www.sec.gov/Archives/edgar/data/1782952/000199937126013090/0001999371-26-013090-index.htm",
+    "upcoming": true,
+    "allocation": [
+      {
+        "pct": 100,
+        "what": "IJR"
+      },
+      {
+        "pct": 60,
+        "what": "Munis"
+      }
+    ]
+  },
+  {
+    "ticker": "DMTO",
+    "name": "Kurv International Equity TaxOptimized ETF",
+    "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000108437&type=485",
+    "closed": false,
+    "url": "https://www.sec.gov/Archives/edgar/data/1782952/000199937126013090/0001999371-26-013090-index.htm",
+    "upcoming": true,
+    "allocation": [
+      {
+        "pct": 100,
+        "what": "VEA"
+      },
+      {
+        "pct": 60,
+        "what": "Munis"
+      }
+    ]
+  },
+  {
+    "ticker": "EUTO",
+    "name": "Kurv European Equity TaxOptimized ETF",
+    "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000108436&type=485",
+    "closed": false,
+    "url": "https://www.sec.gov/Archives/edgar/data/1782952/000199937126013090/0001999371-26-013090-index.htm",
+    "upcoming": true,
+    "allocation": [
+      {
+        "pct": 100,
+        "what": "VGK"
+      },
+      {
+        "pct": 60,
+        "what": "Munis"
+      }
+    ]
+  },
+  {
+    "ticker": "JPTO",
+    "name": "Kurv Japan Equity TaxOptimized ETF",
+    "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000108438&type=485",
+    "closed": false,
+    "url": "https://www.sec.gov/Archives/edgar/data/1782952/000199937126013090/0001999371-26-013090-index.htm",
+    "upcoming": true,
+    "allocation": [
+      {
+        "pct": 100,
+        "what": "EWJ"
+      },
+      {
+        "pct": 60,
+        "what": "Munis"
+      }
+    ]
+  },
+  {
+    "ticker": "EMTO",
+    "name": "Kurv Emerging Market Equity TaxOptimized ETF",
+    "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000108435&type=485",
+    "closed": false,
+    "url": "https://www.sec.gov/Archives/edgar/data/1782952/000199937126013090/0001999371-26-013090-index.htm",
+    "upcoming": true,
+    "allocation": [
+      {
+        "pct": 100,
+        "what": "VWO"
+      },
+      {
+        "pct": 60,
+        "what": "Munis"
+      }
+    ]
+  },
+  {
     "ticker": "BEGS",
     "name": "Rareview 2X Bull Cryptocurrency & Precious Metals ETF",
     "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000090077&type=485",
@@ -560,6 +758,60 @@
     ]
   },
   {
+    "ticker": "OOSB",
+    "name": "One+One S&P 500 and Bitcoin ETF",
+    "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000090391&type=485",
+    "closed": true,
+    "url": "https://www.sec.gov/Archives/edgar/data/1884021/000121390026027879/ea0281711-02_497.htm",
+    "upcoming": false,
+    "allocation": [
+      {
+        "pct": 100,
+        "what": "SPY"
+      },
+      {
+        "pct": 100,
+        "what": "BTC"
+      }
+    ]
+  },
+  {
+    "ticker": "OOQB",
+    "name": "One+One Nasdaq-100 and Bitcoin ETF",
+    "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000090387&type=485",
+    "closed": true,
+    "url": "https://www.sec.gov/Archives/edgar/data/1884021/000121390026027878/ea0281711-01_497.htm",
+    "upcoming": false,
+    "allocation": [
+      {
+        "pct": 100,
+        "what": "QQQ"
+      },
+      {
+        "pct": 100,
+        "what": "BTC"
+      }
+    ]
+  },
+  {
+    "ticker": "WTIB",
+    "name": "USCF Oil Plus Bitcoin Strategy Fund",
+    "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000096297&type=485",
+    "closed": true,
+    "url": "https://www.sec.gov/Archives/edgar/data/1597389/000207187626000237/i26410_etfwtib-497.htm",
+    "upcoming": false,
+    "allocation": [
+      {
+        "pct": 100,
+        "what": "Oil"
+      },
+      {
+        "pct": 100,
+        "what": "BTC"
+      }
+    ]
+  },
+  {
     "ticker": "WTIP",
     "name": "WisdomTree Inflation Plus Fund",
     "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000092513&type=485",
@@ -604,6 +856,24 @@
       {
         "pct": 100,
         "what": "SPY"
+      },
+      {
+        "pct": 100,
+        "what": "BTC"
+      }
+    ]
+  },
+  {
+    "ticker": "ISBT",
+    "name": "IncomeSTKd 1x Bitcoin & 1x Treasury Premium ETF",
+    "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000099120&type=485",
+    "closed": false,
+    "url": "https://www.sec.gov/Archives/edgar/data/1924868/000199937125014936/0001999371-25-014936-index.htm",
+    "upcoming": true,
+    "allocation": [
+      {
+        "pct": 100,
+        "what": "GOVT"
       },
       {
         "pct": 100,
@@ -772,6 +1042,28 @@
     ]
   },
   {
+    "ticker": "LQPE",
+    "name": "PEO AlphaQuest Thematic PE ETF",
+    "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000089834&type=485",
+    "closed": true,
+    "url": "https://www.sec.gov/Archives/edgar/data/1722388/000199937126005619/lqpe-497_031126.htm",
+    "upcoming": false,
+    "allocation": [
+      {
+        "pct": 40,
+        "what": "SPY"
+      },
+      {
+        "pct": 60,
+        "what": "AGG"
+      },
+      {
+        "pct": 60,
+        "what": "CTA"
+      }
+    ]
+  },
+  {
     "ticker": "MATE",
     "name": "Man Active Trend Enhanced ETF",
     "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000097969&type=485",
@@ -876,6 +1168,96 @@
       {
         "pct": 100,
         "what": "MF"
+      }
+    ]
+  },
+  {
+    "ticker": null,
+    "name": "LoCorr Multi-Alpha ETF",
+    "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000098563&type=485",
+    "closed": false,
+    "url": "https://www.sec.gov/Archives/edgar/data/1506768/000089418925010715/0000894189-25-010715-index.htm",
+    "upcoming": true,
+    "allocation": [
+      {
+        "pct": 100,
+        "what": "SPY"
+      },
+      {
+        "pct": 100,
+        "what": "LCSIX"
+      }
+    ]
+  },
+  {
+    "ticker": "RSGT",
+    "name": "Return Stacked Gold & Managed Futures ETF",
+    "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000113641&type=485",
+    "closed": false,
+    "url": "https://www.sec.gov/Archives/edgar/data/1924868/000199937126021956/0001999371-26-021956-index.htm",
+    "upcoming": true,
+    "allocation": [
+      {
+        "pct": 100,
+        "what": "Gold"
+      },
+      {
+        "pct": 100,
+        "what": "MF"
+      }
+    ]
+  },
+  {
+    "ticker": null,
+    "name": "Winton US Equities & Managed Futures ETF",
+    "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000113036&type=485",
+    "closed": false,
+    "url": "https://www.sec.gov/Archives/edgar/data/1314414/000158064226006408/0001580642-26-006408-index.htm",
+    "upcoming": true,
+    "allocation": [
+      {
+        "pct": 100,
+        "what": "SPY"
+      },
+      {
+        "pct": 100,
+        "what": "MF"
+      }
+    ]
+  },
+  {
+    "ticker": null,
+    "name": "Simplify Aggregate Bond PLUS Managed Futures Funds ETF",
+    "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000113890&type=485",
+    "closed": false,
+    "url": "https://www.sec.gov/Archives/edgar/data/1810747/000182912626011114/0001829126-26-011114-index.htm",
+    "upcoming": true,
+    "allocation": [
+      {
+        "pct": 100,
+        "what": "Bonds"
+      },
+      {
+        "pct": 100,
+        "what": "CTA"
+      }
+    ]
+  },
+  {
+    "ticker": null,
+    "name": "Simplify Global Equity PLUS Managed Futures Funds ETF",
+    "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000113892&type=485",
+    "closed": false,
+    "url": "https://www.sec.gov/Archives/edgar/data/1810747/000182912626011114/0001829126-26-011114-index.htm",
+    "upcoming": true,
+    "allocation": [
+      {
+        "pct": 100,
+        "what": "VT"
+      },
+      {
+        "pct": 100,
+        "what": "CTA"
       }
     ]
   }

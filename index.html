@@ -426,7 +426,7 @@
                   label=${`Weights sum to ${PA.formatPct(result.weight)}`} /></div>`}
                 ${result.rows.length > 0 && html`
                   <${Table} data=${[...result.rows, { what: 'Gross', pct: result.total, normalized: 100, total: true }]}
-                    idKey="what" columns=${EXPOSURE_COLUMNS} density="compact" />`}
+                    idKey="what" columns=${EXPOSURE_COLUMNS} density="compact" dividers="grid" />`}
               <//>
               ${result.rows.length > 0 && html`<${Donut} result=${result} />`}
             </div>
@@ -529,7 +529,7 @@
                 <${Switch} label="Show closed" value=${showClosed} onChange=${setShowClosed} />
               </div>
             </div>
-            <${Table} className=${oneLine ? 'etfs one-line' : 'etfs'} data=${grouped.data} idKey=${grouped.idKey} columns=${columns} density="compact" hasHover
+            <${Table} className=${oneLine ? 'etfs one-line' : 'etfs'} data=${grouped.data} idKey=${grouped.idKey} columns=${columns} density="compact" dividers="grid" hasHover
               plugins=${{ group: grouped.plugin }} />
           <//>
         <//>`;

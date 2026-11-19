@@ -14,7 +14,7 @@
   <script>
     // Apply a saved theme before first paint. With no saved theme, the OS setting decides.
     try {
-      const saved = localStorage.getItem('theme');
+      const saved = new URLSearchParams(location.hash.slice(1)).get('theme') || localStorage.getItem('theme');
       if (saved === 'light' || saved === 'dark') document.documentElement.dataset.theme = saved;
     } catch {}
   </script>
@@ -26,7 +26,8 @@
         "react-dom": "https://esm.sh/react-dom@19.2.0",
         "react-dom/client": "https://esm.sh/react-dom@19.2.0/client",
         "@astryxdesign/core": "https://esm.sh/@astryxdesign/core@0.7.16?external=react,react-dom",
-        "htm": "https://esm.sh/htm@3.1.1"
+        "htm": "https://esm.sh/htm@3.1.1",
+        "chart.js/auto": "https://esm.sh/chart.js@4.4.7/auto"
       }
     }
   </script>
@@ -43,23 +44,20 @@
     .closed, .closed a { text-decoration: line-through; color: var(--color-text-secondary); }
     .chips { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
     .plus { color: var(--color-text-secondary); font-size: 12px; }
-    .holding { display: grid; grid-template-columns: minmax(0, 1fr) 120px auto; gap: 8px; align-items: center; }
-    .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 8px; }
-    .tile {
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-container, 8px);
-      padding: 10px 12px;
-      border-top: 3px solid var(--tile-color);
-      background: var(--color-background-surface);
-    }
-    .tile-pct { font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1.2; }
-    .bar { display: flex; gap: 2px; height: 10px; border-radius: 5px; overflow: hidden; }
-    .bar > span { background: var(--tile-color); min-width: 2px; }
+    .holding { display: grid; grid-template-columns: 170px 110px auto; gap: 8px; align-items: center; justify-content: start; }
+    .exposure { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 32px; align-items: center; }
+    .donut { position: relative; width: 240px; height: 240px; }
+    .donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
+    .donut-value { font-size: 40px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+    .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-inline-end: 8px; background: var(--swatch); }
     .num { font-variant-numeric: tabular-nums; }
     .toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
     .toolbar > :first-child { flex: 1 1 260px; max-width: 420px; }
     .group-head { display: inline-flex; gap: 8px; align-items: center; font-weight: 600; }
-    @media (max-width: 560px) { .holding { grid-template-columns: minmax(0, 1fr) 96px auto; } }
+    @media (max-width: 640px) {
+      .holding { grid-template-columns: minmax(0, 1fr) 100px auto; }
+      .exposure { grid-template-columns: 1fr; justify-items: center; }
+    }
   </style>
 </head>
 <body>
@@ -69,10 +67,10 @@
   <script id="logic">
     const PA = (() => {
       const CATEGORIES = [
-        'Classic combos (equities/bonds/gold), more than 1.75x stacking',
-        'Classic combos, 1.75x stacking or less',
-        'Managed futures (includes CTAs and carry)',
-        'Crypto related',
+        'Classic combos (equities/bonds/gold), >1.75x leverage',
+        'Classic combos, ≤1.75x leverage',
+        'Managed futures (incl. CTAs and carry)',
+        'Crypto',
       ];
 
       // Known values of allocation[].what: [hover text, color]. A value that is not here shows as-is, in gray.
@@ -153,7 +151,7 @@
       function matches(etf, query) {
         const status = etf.closed ? 'closed' : etf.upcoming ? 'upcoming' : 'trading';
         const haystack = [
-          etf.ticker, etf.name, allocationText(etf), categoryOf(etf), status,
+          etf.ticker, etf.name, allocationText(etf), status,
           ...etf.allocation.map((a) => hoverText(a.what)),
         ].join(' ').toLowerCase();
         return query.toLowerCase().split(/\s+/).filter(Boolean).every((word) => haystack.includes(word));
@@ -178,7 +176,8 @@
         const total = [...sums.values()].reduce((a, b) => a + b, 0);
         const rows = [...sums].map(([what, pct]) => ({ what, pct, normalized: total ? (pct / total) * 100 : 0 }))
           .sort((a, b) => b.pct - a.pct);
-        return { rows, total, weight, leverage: weight ? total / weight : 0 };
+        // Leverage is against NAV: holdings that add to less than 100% leave the remainder in cash.
+        return { rows, total, weight, leverage: total / 100 };
       }
 
       const DEFAULT_PORTFOLIO = [
@@ -208,14 +207,46 @@
     import * as React from 'react';
     import { createRoot } from 'react-dom/client';
     import htm from 'htm';
+    import Chart from 'chart.js/auto';
     import {
       Badge, Button, Card, Heading, HStack, IconButton, Link, NumberInput, Switch, Table, Text, TextInput,
       Tooltip, Typeahead, VStack, useTableGroupedRows, useTableSortable, useTableSortableState,
     } from '@astryxdesign/core';
 
-    const { useEffect, useMemo, useState } = React;
+    const { useEffect, useMemo, useRef, useState } = React;
     const html = htm.bind(React.createElement);
     const REPO = 'https://github.com/pathikrit/portable-alpha-etfs';
+
+    // All UI state lives in the URL hash, so that each view has a link:
+    // #p=RSSX:40,RSBT:30&q=gold&closed=1&sort=name:desc&collapsed=0,2&theme=dark
+    // A value that is the default is not written.
+    const hashParams = () => new URLSearchParams(location.hash.slice(1));
+    function setHashParam(key, value) {
+      const params = hashParams();
+      if (value) params.set(key, value); else params.delete(key);
+      const text = params.toString().replace(/%3A/g, ':').replace(/%2C/g, ',');
+      history.replaceState(null, '', text ? `#${text}` : location.pathname + location.search);
+    }
+    function useHashState(key, initial, decode = (text) => text, encode = (value) => value) {
+      const [value, setValue] = useState(() => {
+        const text = hashParams().get(key);
+        return text == null ? initial : decode(text) ?? initial;
+      });
+      useEffect(() => setHashParam(key, encode(value)), [key, value]);
+      return [value, setValue];
+    }
+    const DEFAULT_SORT = 'ticker:asc';
+    const decodeSort = (text) => {
+      const [sortKey, direction] = text.split(':');
+      return ['ticker', 'name', 'leverage'].includes(sortKey)
+        ? [{ sortKey, direction: direction === 'desc' ? 'descending' : 'ascending' }] : null;
+    };
+    const encodeSort = (sort) => {
+      const text = sort.map((s) => `${s.sortKey}:${s.direction === 'descending' ? 'desc' : 'asc'}`).join('');
+      return text === DEFAULT_SORT ? '' : text;
+    };
+    const decodeGroups = (text) => new Set(text.split(',').map((i) => PA.CATEGORIES[i]).filter(Boolean));
+    const encodeGroups = (groups) => PA.CATEGORIES.map((c, i) => (groups.has(c) ? i : null)).filter((i) => i != null).join(',');
 
     const Fa = ({ name, className = '' }) =>
       html`<i className=${`fa-duotone fa-solid fa-${name} ${className}`} aria-hidden="true"></i>`;
@@ -229,6 +260,85 @@
       return hover === what ? badge : html`<${Tooltip} content=${hover}><span>${badge}</span><//>`;
     }
 
+    // Re-render when the color scheme changes (the theme button or the OS setting).
+    function useColorScheme() {
+      const [tick, setTick] = useState(0);
+      useEffect(() => {
+        const bump = () => setTick((n) => n + 1);
+        const observer = new MutationObserver(bump);
+        observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+        const media = matchMedia('(prefers-color-scheme: dark)');
+        media.addEventListener('change', bump);
+        return () => { observer.disconnect(); media.removeEventListener('change', bump); };
+      }, []);
+      return tick;
+    }
+    // Theme tokens use light-dark(), which a canvas cannot read. Resolve them through a real element.
+    function resolveColor(value) {
+      const probe = document.createElement('span');
+      probe.style.color = value;
+      document.body.append(probe);
+      const color = getComputedStyle(probe).color;
+      probe.remove();
+      return color;
+    }
+
+    // A full circle is 100% of NAV, or the gross exposure when that is larger.
+    // Below 100%, the unallocated part of the circle stays empty.
+    function Donut({ result }) {
+      const canvas = useRef(null);
+      const chart = useRef(null);
+      const scheme = useColorScheme();
+      useEffect(() => {
+        const gap = Math.max(0, 100 - result.total);
+        const data = {
+          labels: [...result.rows.map((r) => r.what), 'Unallocated'],
+          datasets: [{
+            data: [...result.rows.map((r) => r.pct), gap],
+            backgroundColor: [...result.rows.map((r) => resolveColor(cssColor(r.what))), 'transparent'],
+            borderColor: resolveColor('var(--color-background-card)'),
+            borderWidth: 2,
+            hoverOffset: 4,
+          }],
+        };
+        if (!chart.current) {
+          chart.current = new Chart(canvas.current, {
+            type: 'doughnut',
+            data,
+            options: {
+              cutout: '62%', animation: { duration: 250 }, layout: { padding: 4 },
+              plugins: {
+                legend: { display: false },
+                tooltip: {
+                  filter: (item) => item.label !== 'Unallocated',
+                  callbacks: { label: (item) => ` ${PA.formatPct(item.parsed)} of NAV (${PA.hoverText(item.label)})` },
+                },
+              },
+            },
+          });
+        } else {
+          chart.current.data = data;
+          chart.current.update();
+        }
+      }, [result, scheme]);
+      useEffect(() => () => chart.current?.destroy(), []);
+      return html`
+        <div className="donut">
+          <canvas ref=${canvas} role="img" aria-label="Exposure by asset"></canvas>
+          <div className="donut-center">
+            <span className="donut-value">${result.leverage.toFixed(2)}x</span>
+            <${Text} type="supporting" color="secondary">leverage<//>
+          </div>
+        </div>`;
+    }
+
+    const EXPOSURE_COLUMNS = [
+      { key: 'what', header: 'Asset', renderCell: (r) => html`<${Tooltip} content=${PA.hoverText(r.what)}>
+          <span><span className="swatch" style=${{ '--swatch': r.total ? 'transparent' : cssColor(r.what) }}></span>${r.total ? html`<strong>${r.what}</strong>` : r.what}</span><//>` },
+      { key: 'pct', header: '% of NAV', align: 'end', renderCell: (r) => html`<span className="num">${PA.formatPct(r.pct)}</span>` },
+      { key: 'normalized', header: '% of gross', align: 'end', renderCell: (r) => html`<span className="num">${PA.formatPct(r.normalized)}</span>` },
+    ];
+
     function ThemeButton() {
       const [dark, setDark] = useState(() => {
         const saved = document.documentElement.dataset.theme;
@@ -238,6 +348,7 @@
         const next = dark ? 'light' : 'dark';
         document.documentElement.dataset.theme = next;
         try { localStorage.setItem('theme', next); } catch {}
+        setHashParam('theme', next);
         setDark(!dark);
       };
       return html`<${IconButton} variant="ghost" label=${dark ? 'Use light mode' : 'Use dark mode'}
@@ -260,11 +371,11 @@
           if (!q) return items;
           const hits = items.filter((i) => i.id.includes(q) || i.name.toUpperCase().includes(q));
           // A ticker that is not in the list is permitted. It counts as 100% itself.
-          return hits.some((i) => i.id === q) ? hits : [...hits, { id: q, label: q, name: 'Use this ticker (not a portable alpha ETF)' }];
+          return hits.some((i) => i.id === q) ? hits : [...hits, { id: q, label: q, name: 'Other ticker (counted as 100% itself)' }];
         },
       }), [items]);
       const update = (id, patch) => setHoldings(holdings.map((h) => (h.id === id ? { ...h, ...patch } : h)));
-      const result = PA.exposures(holdings, etfs);
+      const result = useMemo(() => PA.exposures(holdings, etfs), [holdings, etfs]);
       const weightOk = Math.abs(result.weight - 100) < 0.05;
 
       return html`
@@ -275,14 +386,14 @@
               <${HStack} gap=${2}>
                 <${Button} size="sm" variant="ghost" label="Reset" icon=${html`<${Fa} name="rotate-left" />`}
                   onClick=${() => setHoldings(withIds(PA.DEFAULT_PORTFOLIO))} />
-                <${Button} size="sm" label="Add a holding" icon=${html`<${Fa} name="plus" />`}
+                <${Button} size="sm" label="Add holding" icon=${html`<${Fa} name="plus" />`}
                   onClick=${() => setHoldings([...holdings, { id: nextId++, ticker: '', weight: 0 }])} />
               <//>
             <//>
             <${VStack} gap=${2}>
               ${holdings.map((h) => html`
                 <div className="holding" key=${h.id}>
-                  <${Typeahead} label="Ticker" isLabelHidden size="sm" placeholder="Ticker, for example RSST or AVUV"
+                  <${Typeahead} label="Ticker" isLabelHidden size="sm" placeholder="Ticker"
                     searchSource=${source} hasEntriesOnFocus hasClear
                     value=${h.ticker ? { id: h.ticker, label: h.ticker, name: '' } : null}
                     onChange=${(item) => update(h.id, { ticker: item ? item.id : '' })}
@@ -293,37 +404,22 @@
                     icon=${html`<${Fa} name="trash-can" />`} onClick=${() => setHoldings(holdings.filter((x) => x.id !== h.id))} />
                 </div>`)}
             <//>
-            <${HStack} gap=${3} wrap="wrap" vAlign="center">
-              <${Text} type="label">Exposure: <span className="num">${PA.formatPct(result.total)}</span><//>
-              <${Badge} variant="info" label=${`${result.leverage.toFixed(2)}x leverage`} />
-              ${!weightOk && html`<${Badge} variant="warning"
-                label=${`Weights add to ${PA.formatPct(result.weight)}, not 100%`} />`}
-            <//>
+            ${!weightOk && html`<div><${Badge} variant="warning" label=${`Weights sum to ${PA.formatPct(result.weight)}`} /></div>`}
             ${result.rows.length > 0 && html`
-              <div className="bar" role="img" aria-label="Normalized exposure">
-                ${result.rows.map((r) => html`<span key=${r.what} title=${`${r.what}: ${PA.formatPct(r.normalized)}`}
-                  style=${{ flex: r.normalized, '--tile-color': cssColor(r.what) }}></span>`)}
-              </div>
-              <div className="tiles">
-                ${result.rows.map((r) => html`
-                  <div className="tile" key=${r.what} style=${{ '--tile-color': cssColor(r.what) }}>
-                    <${Chip} what=${r.what} />
-                    <div className="tile-pct">${PA.formatPct(r.pct)}</div>
-                    <${Text} type="supporting" color="secondary"><span className="num">${PA.formatPct(r.normalized)}</span> normalized<//>
-                  </div>`)}
+              <div className="exposure">
+                <${Donut} result=${result} />
+                <${Table} data=${[...result.rows, { what: 'Gross', pct: result.total, normalized: 100, total: true }]}
+                  idKey="what" columns=${EXPOSURE_COLUMNS} density="compact" />
               </div>`}
-            <${Text} type="supporting" color="secondary">
-              Exposure is the weight of each holding multiplied by its allocation. Normalized is the exposure divided by the
-              total exposure, so that the parts add to 100%. The address of this page keeps your portfolio, so you can share it.
-            <//>
           <//>
         <//>`;
     }
 
     function EtfTable({ etfs, onAdd }) {
-      const [query, setQuery] = useState('');
-      const [showClosed, setShowClosed] = useState(false);
-      const [collapsed, setCollapsed] = useState(() => new Set());
+      const [query, setQuery] = useHashState('q', '');
+      const [showClosed, setShowClosed] = useHashState('closed', false, (text) => text === '1', (on) => (on ? '1' : ''));
+      const [collapsed, setCollapsed] = useHashState('collapsed', new Set(), decodeGroups, encodeGroups);
+      const [sort, setSort] = useHashState('sort', decodeSort(DEFAULT_SORT), decodeSort, encodeSort);
 
       const rows = useMemo(() => etfs
         .filter((e) => (showClosed || !e.closed) && PA.matches(e, query))
@@ -332,7 +428,8 @@
 
       const { sortedData, sortConfig } = useTableSortableState({
         data: rows,
-        defaultSort: [{ sortKey: 'ticker', direction: 'ascending' }],
+        sort,
+        onSortChange: setSort,
         comparators: {
           // Funds that have no ticker yet go last.
           ticker: (a, b) => !a.ticker - !b.ticker || (a.ticker || a.name).localeCompare(b.ticker || b.name),
@@ -341,8 +438,12 @@
         },
       });
       const sortPlugin = useTableSortable(sortConfig);
+      // Number the rows in display order: group by group.
+      const numbered = useMemo(() => PA.CATEGORIES
+        .flatMap((category) => sortedData.filter((row) => row.category === category))
+        .map((row, i) => ({ ...row, n: i + 1 })), [sortedData]);
       const grouped = useTableGroupedRows({
-        data: sortedData,
+        data: numbered,
         groupBy: (row) => row.category,
         groupOrder: PA.CATEGORIES,
         getRowKey: (row) => row.key,
@@ -356,6 +457,10 @@
       });
 
       const columns = useMemo(() => [
+        {
+          key: 'n', header: '#', align: 'end', width: { type: 'pixel', value: 48 },
+          renderCell: (e) => html`<${Text} color="secondary"><span className="num">${e.n}</span><//>`,
+        },
         {
           key: 'ticker', header: 'Ticker', sortable: true, width: { type: 'pixel', value: 170 },
           renderCell: (e) => html`
@@ -385,41 +490,35 @@
             </span>`,
         },
         {
-          key: 'leverage', header: 'Stack', sortable: true, align: 'end', width: { type: 'pixel', value: 90 },
+          key: 'leverage', header: 'Leverage', sortable: true, align: 'end', width: { type: 'pixel', value: 110 },
           renderCell: (e) => html`<span className="num">${e.leverage.toFixed(2)}x</span>`,
         },
         {
           key: 'add', header: '', align: 'end', width: { type: 'pixel', value: 56 },
-          renderCell: (e) => e.ticker && html`<${IconButton} size="sm" variant="ghost" label=${`Add ${e.ticker} to the portfolio`}
-            tooltip="Add to the portfolio" icon=${html`<${Fa} name="circle-plus" />`} onClick=${() => onAdd(e.ticker)} />`,
+          renderCell: (e) => e.ticker && html`<${IconButton} size="sm" variant="ghost" label=${`Add ${e.ticker} to portfolio`}
+            tooltip="Add to portfolio" icon=${html`<${Fa} name="circle-plus" />`} onClick=${() => onAdd(e.ticker)} />`,
         },
       ], [onAdd]);
 
       return html`
         <${Card} padding=${5}>
           <${VStack} gap=${4}>
-            <${Heading} level=${2}><${Fa} name="layer-group" /> The list<//>
+            <${Heading} level=${2}><${Fa} name="layer-group" /> ETFs<//>
             <div className="toolbar">
               <${TextInput} type="search" label="Search" isLabelHidden hasClear startIcon=${SearchIcon}
-                placeholder="Search: a ticker, a name, gold, managed futures, upcoming…" value=${query} onChange=${setQuery} />
-              <${Switch} label="Show closed funds" value=${showClosed} onChange=${setShowClosed} />
+                placeholder="Search ticker, name or exposure" value=${query} onChange=${setQuery} />
+              <${Switch} label="Show closed" value=${showClosed} onChange=${setShowClosed} />
             </div>
             <${Table} data=${grouped.data} idKey=${grouped.idKey} columns=${columns} density="compact" hasHover
               plugins=${{ sort: sortPlugin, group: grouped.plugin }} />
-            <${Text} type="supporting" color="secondary">
-              ${rows.length} of ${etfs.length} funds shown. The ticker opens the SEC filing. The name opens the fund page
-              (for a closed fund, the closure notice). Stack is the sum of the allocation.
-            <//>
           <//>
         <//>`;
     }
 
     function App({ etfs }) {
-      const [holdings, setHoldings] = useState(() =>
-        withIds(PA.decodePortfolio(new URLSearchParams(location.hash.slice(1)).get('p')) || PA.DEFAULT_PORTFOLIO));
-      useEffect(() => {
-        history.replaceState(null, '', `#p=${PA.encodePortfolio(holdings)}`);
-      }, [holdings]);
+      const [holdings, setHoldings] = useHashState('p', withIds(PA.DEFAULT_PORTFOLIO),
+        (text) => { const list = PA.decodePortfolio(text); return list && withIds(list); },
+        (list) => { const text = PA.encodePortfolio(list); return text === PA.encodePortfolio(PA.DEFAULT_PORTFOLIO) ? '' : text; });
       const onAdd = React.useCallback((ticker) => {
         setHoldings((old) => (old.some((h) => h.ticker === ticker) ? old : [...old, { id: nextId++, ticker, weight: 0 }]));
         scrollTo({ top: 0, behavior: 'smooth' });
@@ -432,21 +531,17 @@
               <${Fa} name="layer-plus" className="brand-icon" />
               <${VStack} gap=${0}>
                 <${Heading} level=${1}>Portable Alpha ETFs<//>
-                <${Text} color="secondary">ETFs listed in the United States only. No mutual funds, no foreign funds, no UCITS.<//>
+                <${Text} color="secondary">US-listed ETFs only. No mutual funds, non-US listings or UCITS.<//>
               <//>
             <//>
             <${HStack} gap=${1}>
-              <${IconButton} variant="ghost" label="GitHub repository" tooltip="Add or correct a fund on GitHub"
+              <${IconButton} variant="ghost" label="GitHub repository" tooltip="Edit etf.json on GitHub"
                 icon=${html`<${Fa} name="code-pull-request" />`} href=${REPO} target="_blank" rel="noopener" />
               <${ThemeButton} />
             <//>
           <//>
           <${Portfolio} etfs=${etfs} holdings=${holdings} setHoldings=${setHoldings} />
           <${EtfTable} etfs=${etfs} onAdd=${onAdd} />
-          <${Text} type="supporting" color="secondary" justify="center">
-            Allocations are approximate targets from fund documents. This page is not investment advice.
-            To add or correct a fund, <${Link} href=${`${REPO}/edit/main/etf.json`} target="_blank" rel="noopener">open a pull request for etf.json<//>.
-          <//>
         <//>`;
     }
 

@@ -16,11 +16,13 @@ Your task is to make `etf.json` agree with the facts of today.
   Do not add leverage (the page calculates it) or AUM (it changes).
 - `ticker`: the exchange ticker. Use `null` only for an upcoming fund that has no ticker yet.
 - `name`: the official fund name from the SEC filing or from the issuer.
+  Remove "ETF", "Fund" or "Exchange-Traded Fund" from the end of the name. Each entry is an ETF.
 - `filing`: a link on sec.gov. Use the EDGAR series page:
   `https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=<series ID>&type=485`.
   If there is no series ID, link to the filing index page.
 - `url`: the fund page on the issuer's site. For a closed fund, the closure notice
   (the SEC 497 supplement or the issuer's press release). For an upcoming fund that has no page, the filing.
+- The entries are in alphabetical order by `ticker`. Funds that have no ticker are last, in order by `name`.
 - `closed` and `upcoming` are booleans. They are never `true` at the same time.
 - `allocation`: a list of `{"pct": 100, "what": "SPY"}`. `pct` is a number. `what` is a well-known ticker
   for the exposure (SPY, GOVT) or a label (Gold, MF, BTC). Use labels that are already in the file where possible.
@@ -59,7 +61,8 @@ Your task is to make `etf.json` agree with the facts of today.
    launches. Useful words: "return stacked", "portable alpha", "capital efficient", "plus managed futures", "stacked".
    Add each new fund that obeys the rules, with `upcoming: true` until it trades.
 
-5. Keep the entries of `etf.json` in the same order. Put a new entry adjacent to similar funds.
+5. Keep `etf.json` in alphabetical order by `ticker`. Put the funds that have no ticker last, in alphabetical order by `name`.
+   When an upcoming fund gets a ticker, move its entry to the correct position.
 
 6. Run the tests, then run the check again. Continue until the tests pass and each remaining flag has an explanation.
 

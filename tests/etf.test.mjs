@@ -61,6 +61,16 @@ test('tickers and names are unique', () => {
   assert.equal(new Set(names).size, names.length);
 });
 
+test('names do not end with "ETF" or "Fund": each entry is an ETF', () => {
+  for (const etf of etfs) assert.doesNotMatch(etf.name, /\b(ETF|Fund|Exchange[- ]Traded Fund)$/i, label(etf));
+});
+
+test('etf.json is in alphabetical order: tickers first, then funds with no ticker by name', () => {
+  const key = (etf) => `${etf.ticker ? 0 : 1}${etf.ticker || etf.name}`;
+  const keys = etfs.map(key);
+  assert.deepEqual(keys, [...keys].sort());
+});
+
 test('each fund goes into one of the 4 categories', () => {
   for (const etf of etfs) assert.ok(PA.CATEGORIES.includes(PA.categoryOf(etf)), label(etf));
 });

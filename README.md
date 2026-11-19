@@ -1,23 +1,9 @@
-# Portable Alpha ETFs
+# Portable Alpha ETFs [![Test and publish](https://github.com/pathikrit/portable-alpha-etfs/actions/workflows/pages.yml/badge.svg)](https://github.com/pathikrit/portable-alpha-etfs/actions/workflows/pages.yml)
 
-This repository keeps a list of portable alpha ETFs. These ETFs are also known as return stacked ETFs.
+This repository keeps a list of portable alpha (also known as return stacked) ETFs (only US listings, no mutual funds)
 
-## Use the list
+See: <https://pathikrit.github.io/portable-alpha-etfs/>.
 
-Go to <https://pathikrit.github.io/portable-alpha-etfs/>.
+## Update ETF listing
 
-The page shows the list. It also shows the exposure of a portfolio that you make from these ETFs.
-
-## Scope
-
-The list is only for ETFs that are listed in the United States.
-
-Do not add these funds:
-
-- Mutual funds
-- Funds that are listed in other countries
-- UCITS funds
-
-## Change the list
-
-To add an ETF or to correct an entry, open a pull request that changes `etf.json`.
+[Click here](https://github.com/pathikrit/portable-alpha-etfs/edit/main/etf.json)

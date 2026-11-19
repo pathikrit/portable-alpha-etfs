@@ -96,7 +96,7 @@ test('portfolio exposure: 40% RSSX + 30% RSBT + 30% AVUV', () => {
     { ticker: 'RSSX', allocation: [{ pct: 100, what: 'SPY' }, { pct: 80, what: 'Gold' }, { pct: 20, what: 'BTC' }] },
     { ticker: 'RSBT', allocation: [{ pct: 100, what: 'GOVT' }, { pct: 100, what: 'MF' }] },
   ];
-  const result = PA.exposures(PA.DEFAULT_PORTFOLIO, list);
+  const result = PA.exposures(PA.decodePortfolio('RSSX:40,RSBT:30,AVUV:30'), list);
   const byWhat = Object.fromEntries(result.rows.map((row) => [row.what, row.pct]));
   assert.deepEqual(byWhat, { SPY: 40, Gold: 32, GOVT: 30, MF: 30, AVUV: 30, BTC: 8 });
   assert.equal(result.total, 170);
@@ -115,9 +115,17 @@ test('a fund that has no ticker gets a TBD symbol that works in a portfolio', ()
   assert.deepEqual(Object.fromEntries(result.rows.map((row) => [row.what, row.pct])), { VT: 50, Bonds: 50 });
 });
 
-test('the default portfolio uses funds that are in etf.json', () => {
+test('the default portfolio is 20% each of 5 funds, and its listed funds are in etf.json', () => {
+  assert.equal(PA.encodePortfolio(PA.DEFAULT_PORTFOLIO), 'RSSX:20,RSBT:20,WTLS:20,GMIX:20,AVUV:20');
   const tickers = new Set(etfs.map((etf) => etf.ticker));
-  assert.ok(tickers.has('RSSX') && tickers.has('RSBT'));
+  for (const ticker of ['RSSX', 'RSBT', 'WTLS', 'GMIX']) assert.ok(tickers.has(ticker), ticker);
+  const result = PA.exposures(PA.DEFAULT_PORTFOLIO, PA.withSymbols(etfs));
+  assert.equal(result.weight, 100);
+});
+
+test('a ticker that is not known gets the gray "other" color', () => {
+  assert.equal(PA.colorOf('ZZZZ'), 'other');
+  assert.equal(PA.hoverText('ZZZZ'), 'ZZZZ');
 });
 
 test('search looks at all columns', () => {
@@ -129,8 +137,7 @@ test('search looks at all columns', () => {
 });
 
 test('the portfolio survives the URL', () => {
-  const text = PA.encodePortfolio(PA.DEFAULT_PORTFOLIO);
-  assert.equal(text, 'RSSX:40,RSBT:30,AVUV:30');
+  const text = 'RSSX:40,RSBT:30,AVUV:30';
   assert.equal(PA.encodePortfolio(PA.decodePortfolio(text)), text);
   assert.equal(PA.decodePortfolio(''), null);
 });

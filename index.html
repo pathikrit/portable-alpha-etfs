@@ -50,6 +50,25 @@
     .etfs.one-line .chips { flex-wrap: nowrap; }
     .etfs td:nth-child(2) .chips { flex-wrap: nowrap; white-space: nowrap; }
     .etfs td:nth-child(2) .chips > * { flex-shrink: 0; }
+    /* One color for each asset class: tags, pie slices and the exposure table all use these. */
+    :root {
+      --c-bond: light-dark(#1f8a3b, #4fb568);
+      --c-large: light-dark(#1b3a8f, #3f66d0);
+      --c-global: light-dark(#2f72e0, #6a9df7);
+      --c-small: light-dark(#6db6f2, #a6d6ff);
+      --c-longshort: light-dark(#6557d6, #8f84f2);
+      --c-commodity: light-dark(#c4900a, #e2b222);
+      --c-futures: light-dark(#9a35cc, #c573ec);
+      --c-crypto: light-dark(#d43a3a, #f06464);
+      --c-other: light-dark(#7a7a7a, #9a9a9a);
+    }
+    .chip {
+      display: inline-flex; align-items: center; white-space: nowrap; line-height: 1.5;
+      padding: 0 8px; border-radius: 999px; font-size: 12px; font-weight: 500;
+      color: var(--color-text-primary);
+      background: color-mix(in srgb, var(--c) 42%, transparent);
+      border: 1px solid color-mix(in srgb, var(--c) 85%, transparent);
+    }
     .plus { color: var(--color-text-secondary); font-size: 12px; }
     .holding { display: grid; grid-template-columns: 108px 88px auto; gap: 8px; align-items: center; justify-content: start; }
     .builder { display: grid; grid-template-columns: auto minmax(300px, 380px) minmax(0, 1fr); gap: 48px; align-items: stretch; }
@@ -89,65 +108,77 @@
       };
       const CATEGORIES = Object.keys(CATEGORY_HOVER);
 
-      // Known values of allocation[].what: [hover text, color]. A value that is not here shows as-is, in gray.
+      // Asset classes. Each has one color, used for the tags, the pie and the exposure table (see --c-* in the CSS).
+      // Known values of allocation[].what: [hover text, asset class]. A value that is not here shows as-is, in gray.
       const WHAT = {
-        MF: ['Managed futures', 'purple'],
-        CTA: ['Managed futures (CTA trend following)', 'purple'],
-        Carry: ['Futures yield (carry)', 'purple'],
-        DBMF: ['iMGP DBi Managed Futures Strategy ETF', 'purple'],
-        AHLT: ['American Beacon AHL Trend ETF', 'purple'],
-        LCSIX: ['LoCorr Macro Strategies Fund', 'purple'],
-        Macro: ['Global macro', 'purple'],
-        MNA: ['Merger arbitrage', 'pink'],
-        'L/S': ['Long/short US equity', 'pink'],
-        'Intl L/S': ['Long/short international equity', 'pink'],
-        BTC: ['Bitcoin', 'orange'],
-        ETH: ['Ether', 'orange'],
-        Gold: ['Gold', 'yellow'],
-        Silver: ['Silver', 'yellow'],
-        Copper: ['Copper', 'yellow'],
-        Oil: ['Crude oil', 'yellow'],
-        Commodities: ['Commodities', 'yellow'],
-        DBC: ['Broad commodities', 'yellow'],
-        SPY: ['S&P 500', 'blue'],
-        QQQ: ['Nasdaq-100', 'blue'],
-        VT: ['Global equities', 'blue'],
-        VXUS: ['International equities (ex-US)', 'blue'],
-        VEA: ['Developed markets equities (ex-US)', 'blue'],
-        EFA: ['Developed markets equities (ex-US)', 'blue'],
-        VWO: ['Emerging markets equities', 'blue'],
-        VGK: ['European equities', 'blue'],
-        EWJ: ['Japanese equities', 'blue'],
-        IJR: ['US small-cap equities', 'blue'],
-        'US Small Cap': ['US small-cap equities', 'blue'],
-        'US Equity': ['US equity ETFs', 'blue'],
-        'Intl Equity': ['International equity ETFs', 'blue'],
-        Stocks: ['Individual stocks', 'blue'],
-        Sector: ['Tactical sector position', 'blue'],
-        'Equity Rotation': ['Tactical equity rotation', 'blue'],
-        'Gold Miners': ['Gold miners', 'blue'],
-        'Copper Miners': ['Copper miners', 'blue'],
-        REMX: ['Rare earth and strategic metals miners', 'blue'],
-        CRIT: ['Critical materials miners', 'blue'],
-        Bonds: ['Bonds', 'teal'],
-        'Corp Bonds': ['Investment-grade corporate bonds', 'teal'],
-        Munis: ['Municipal bonds', 'teal'],
-        GOVT: ['US Treasuries', 'teal'],
-        BND: ['US aggregate bonds', 'teal'],
-        AGG: ['US aggregate bonds', 'teal'],
-        IEF: ['7-10 year US Treasuries', 'teal'],
-        IEI: ['3-7 year US Treasuries', 'teal'],
-        MINT: ['Short-duration active bonds', 'teal'],
-        BIL: ['Treasury bills', 'teal'],
-        STIP: ['Short-term TIPS', 'teal'],
-        TIPZ: ['Inflation-linked bonds (TIPS)', 'teal'],
-        LTPZ: ['Long-term TIPS', 'teal'],
+        // Bonds: green
+        Bonds: ['Bonds', 'bond'],
+        'Corp Bonds': ['Investment-grade corporate bonds', 'bond'],
+        Munis: ['Municipal bonds', 'bond'],
+        GOVT: ['US Treasuries', 'bond'],
+        BND: ['US aggregate bonds', 'bond'],
+        AGG: ['US aggregate bonds', 'bond'],
+        IEF: ['7-10 year US Treasuries', 'bond'],
+        IEI: ['3-7 year US Treasuries', 'bond'],
+        MINT: ['Short-duration active bonds', 'bond'],
+        BIL: ['Treasury bills', 'bond'],
+        STIP: ['Short-term TIPS', 'bond'],
+        TIPZ: ['Inflation-linked bonds (TIPS)', 'bond'],
+        LTPZ: ['Long-term TIPS', 'bond'],
+        // US large-cap equities: dark blue
+        SPY: ['S&P 500', 'large'],
+        QQQ: ['Nasdaq-100', 'large'],
+        'US Equity': ['US equity ETFs', 'large'],
+        Stocks: ['Individual stocks', 'large'],
+        Sector: ['Tactical sector position', 'large'],
+        'Equity Rotation': ['Tactical equity rotation', 'large'],
+        // Global and international equities: medium blue
+        VT: ['Global equities', 'global'],
+        VXUS: ['International equities (ex-US)', 'global'],
+        VEA: ['Developed markets equities (ex-US)', 'global'],
+        EFA: ['Developed markets equities (ex-US)', 'global'],
+        VWO: ['Emerging markets equities', 'global'],
+        VGK: ['European equities', 'global'],
+        EWJ: ['Japanese equities', 'global'],
+        'Intl Equity': ['International equity ETFs', 'global'],
+        // Small-cap equities: light blue
+        IJR: ['US small-cap equities', 'small'],
+        'US Small Cap': ['US small-cap equities', 'small'],
+        AVUV: ['US small-cap value equities', 'small'],
+        // Long-short equity: purple-blue
+        'L/S': ['Long-short US equity', 'longshort'],
+        'Intl L/S': ['Long-short international equity', 'longshort'],
+        MNA: ['Merger arbitrage', 'longshort'],
+        // Commodities and miners: gold
+        Gold: ['Gold', 'commodity'],
+        Silver: ['Silver', 'commodity'],
+        Copper: ['Copper', 'commodity'],
+        Oil: ['Crude oil', 'commodity'],
+        Commodities: ['Commodities', 'commodity'],
+        DBC: ['Broad commodities', 'commodity'],
+        CTA: ['Managed futures (CTA trend following)', 'commodity'],
+        'Gold Miners': ['Gold miners', 'commodity'],
+        'Copper Miners': ['Copper miners', 'commodity'],
+        REMX: ['Rare earth and strategic metals miners', 'commodity'],
+        CRIT: ['Critical materials miners', 'commodity'],
+        // Managed futures, carry and macro: purple
+        MF: ['Managed futures', 'futures'],
+        Carry: ['Futures yield (carry)', 'futures'],
+        DBMF: ['iMGP DBi Managed Futures Strategy ETF', 'futures'],
+        AHLT: ['American Beacon AHL Trend ETF', 'futures'],
+        LCSIX: ['LoCorr Macro Strategies Fund', 'futures'],
+        Macro: ['Global macro', 'futures'],
+        // Crypto: red
+        BTC: ['Bitcoin', 'crypto'],
+        ETH: ['Ether', 'crypto'],
       };
       const CRYPTO = new Set(['BTC', 'ETH']);
-      const isManagedFutures = (what) => (WHAT[what] || [])[1] === 'purple';
+      // The table group does not come from the color: CTA has the commodity color but is in Managed Futures.
+      const MANAGED_FUTURES = new Set(['MF', 'CTA', 'Carry', 'DBMF', 'AHLT', 'LCSIX', 'Macro']);
+      const isManagedFutures = (what) => MANAGED_FUTURES.has(what);
 
       const hoverText = (what) => (WHAT[what] || [what])[0];
-      const colorOf = (what) => (WHAT[what] || [what, 'gray'])[1];
+      const colorOf = (what) => (WHAT[what] || [what, 'other'])[1];
 
       const totalPct = (etf) => etf.allocation.reduce((sum, a) => sum + a.pct, 0);
       const leverage = (etf) => totalPct(etf) / 100;
@@ -200,11 +231,7 @@
       // so that it can be used in a portfolio. The position does not change with the table filters.
       const withSymbols = (etfs) => etfs.map((etf, i) => ({ ...etf, symbol: etf.ticker || `TBD-${i + 1}` }));
 
-      const DEFAULT_PORTFOLIO = [
-        { ticker: 'RSSX', weight: 40 },
-        { ticker: 'RSBT', weight: 30 },
-        { ticker: 'AVUV', weight: 30 },
-      ];
+      const DEFAULT_PORTFOLIO = ['RSSX', 'RSBT', 'WTLS', 'GMIX', 'AVUV'].map((ticker) => ({ ticker, weight: 20 }));
       // Portfolio in the URL: #p=RSSX:40,RSBT:30,AVUV:30
       const encodePortfolio = (holdings) =>
         holdings.filter((h) => h.ticker).map((h) => `${h.ticker}:${Number(h.weight) || 0}`).join(',');
@@ -268,13 +295,13 @@
     const Fa = ({ name, className = '' }) =>
       html`<i className=${`fa-duotone fa-solid fa-${name} ${className}`} aria-hidden="true"></i>`;
     const SearchIcon = () => html`<${Fa} name="magnifying-glass" />`;
-    const cssColor = (what) => `var(--color-icon-${PA.colorOf(what)})`;
+    const cssColor = (what) => `var(--c-${PA.colorOf(what)})`;
 
     function Chip({ pct, what }) {
       const label = pct == null ? what : `${PA.formatPct(pct)} ${what}`;
-      const badge = html`<${Badge} label=${label} variant=${PA.colorOf(what) === 'gray' ? 'neutral' : PA.colorOf(what)} />`;
+      const badge = html`<span className="chip" style=${{ '--c': cssColor(what) }}>${label}</span>`;
       const hover = PA.hoverText(what);
-      return hover === what ? badge : html`<${Tooltip} content=${hover}><span>${badge}</span><//>`;
+      return hover === what ? badge : html`<${Tooltip} content=${hover}>${badge}<//>`;
     }
 
     // Re-render when the color scheme changes (the theme button or the OS setting).
@@ -320,7 +347,11 @@
             share: [...result.rows.map((r) => r.normalized), 0],
           }],
         };
-        const ink = resolveColor('var(--color-background-card)');
+        // White or black text on each slice, by the lightness of its color.
+        const ink = (ctx) => {
+          const [r, g, b] = (String(ctx.dataset.backgroundColor[ctx.dataIndex]).match(/[\d.]+/g) || [0, 0, 0]).map(Number);
+          return 0.2126 * r + 0.7152 * g + 0.0722 * b > 150 ? '#111111' : '#ffffff';
+        };
         if (!chart.current) {
           chart.current = new Chart(canvas.current, {
             type: 'doughnut',
@@ -348,7 +379,6 @@
           });
         } else {
           chart.current.data = data;
-          chart.current.options.plugins.datalabels.color = ink;
           chart.current.update();
         }
       }, [result, scheme]);

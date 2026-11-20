@@ -15,7 +15,8 @@ const logic = page.match(/<script id="logic">([\s\S]*?)<\/script>/)[1];
 const PA = vm.runInNewContext(`${logic}; PA`);
 
 const REQUIRED = ['ticker', 'name', 'filing', 'url', 'allocation'];
-const OPTIONAL = ['closed', 'upcoming']; // Only written when true. A key that is not there means false.
+// closed and upcoming are only written when true; a key that is not there means false. aum.mjs writes aum.
+const OPTIONAL = ['closed', 'upcoming', 'aum'];
 const isUrl = (value) => typeof value === 'string' && /^https:\/\/\S+$/.test(value);
 const label = (etf) => etf.ticker || etf.name;
 
@@ -23,7 +24,19 @@ test('etf.json is a list of funds', () => {
   assert.ok(Array.isArray(etfs) && etfs.length > 0);
 });
 
-test('each fund has the schema keys only (no leverage, no AUM)', () => {
+test('aum is an amount in USD and the date of the check, for trading funds only', () => {
+  for (const etf of etfs.filter((etf) => 'aum' in etf)) {
+    const id = label(etf);
+    assert.ok(!etf.closed && !etf.upcoming && etf.ticker, `${id}: only a trading fund has aum`);
+    assert.deepEqual(Object.keys(etf.aum), ['amount', 'last_checked'], `${id}: aum keys`);
+    assert.ok(Number.isInteger(etf.aum.amount) && etf.aum.amount > 0, `${id}: aum.amount is a positive integer`);
+    const date = etf.aum.last_checked;
+    assert.match(date, /^\d{4}-\d{2}-\d{2}$/, `${id}: aum.last_checked is YYYY-MM-DD`);
+    assert.equal(new Date(`${date}T00:00:00Z`).toISOString().slice(0, 10), date, `${id}: aum.last_checked is a real date`);
+  }
+});
+
+test('each fund has the schema keys only (no leverage)', () => {
   for (const etf of etfs) {
     const keys = Object.keys(etf);
     for (const key of REQUIRED) assert.ok(keys.includes(key), `${label(etf)}: ${key} is required`);
@@ -35,7 +48,7 @@ test('each fund has correct field types', () => {
   for (const etf of etfs) {
     const id = label(etf);
     assert.ok(typeof etf.name === 'string' && etf.name.trim() === etf.name && etf.name, `${id}: name`);
-    for (const key of OPTIONAL) if (key in etf) assert.equal(etf[key], true, `${id}: write ${key} only when it is true`);
+    for (const key of ['closed', 'upcoming']) if (key in etf) assert.equal(etf[key], true, `${id}: write ${key} only when it is true`);
     assert.ok(!(etf.closed && etf.upcoming), `${id}: closed and upcoming at the same time`);
     assert.ok(isUrl(etf.url), `${id}: url`);
     assert.ok(isUrl(etf.filing) && new URL(etf.filing).hostname.endsWith('sec.gov'), `${id}: filing must be on sec.gov`);
@@ -172,4 +185,16 @@ test('the build writes etf.json into the page', () => {
   const baked = built.match(/<script id="etfs" type="application\/json">([\s\S]*?)<\/script>/)[1];
   assert.equal(JSON.stringify(JSON.parse(baked)), JSON.stringify(etfs));
   assert.ok(!/fetch\(/.test(built), 'the page does not fetch its data');
+});
+
+test('AUM shows in whole millions', () => {
+  assert.equal(PA.formatAum(65420000), '65');
+  assert.equal(PA.formatAum(1828178690), '1,828');
+  assert.equal(PA.formatAum(500000), '1');
+  assert.equal(PA.formatAum(491073), '<1');
+});
+
+test('rows sort by AUM, largest first, and funds with no AUM stay last in their order', () => {
+  const funds = [{ t: 'A' }, { t: 'B', aum: { amount: 5 } }, { t: 'C' }, { t: 'D', aum: { amount: 9 } }];
+  assert.equal(funds.sort(PA.byAum).map((f) => f.t).join(''), 'DBAC');
 });

@@ -41,11 +41,11 @@
       background: var(--color-background-body);
       color: var(--color-text-primary);
     }
-    #root { max-width: 1300px; margin: 0 auto; padding: 24px 16px 48px; }
+    #root { max-width: 1406px; margin: 0 auto; padding: 24px 16px 48px; }
     .brand-icon { font-size: 28px; color: var(--color-icon-accent); }
     .closed, .closed a { color: var(--color-text-secondary); }
     .chips { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
-    .etfs.one-line td { white-space: nowrap; }
+    .etfs.one-line td, .etfs .num { white-space: nowrap; }
     .etfs.one-line .chips { flex-wrap: nowrap; }
     .etfs td:nth-child(2) .chips { flex-wrap: nowrap; white-space: nowrap; }
     .etfs td:nth-child(2) .chips > * { flex-shrink: 0; }
@@ -92,8 +92,8 @@
       .builder { grid-template-columns: minmax(0, 1fr); gap: 24px; }
       .builder > * + * { border-inline-start: 0; padding-inline-start: 0; border-top: 1px solid var(--color-border); padding-top: 24px; }
     }
-    /* Phone: each ETF row becomes a small block (ticker and leverage, then name, then allocation), so nothing scrolls sideways. */
-    @media (max-width: 700px) {
+    /* Phone: each ETF row becomes a small block (ticker, AUM and leverage, then name, then allocation), so nothing scrolls sideways. */
+    @media (max-width: 760px) {
       #root { padding: 16px 12px 40px; }
       .donut-value { font-size: 40px; }
       .switches { gap: 12px 20px; }
@@ -103,13 +103,17 @@
       table.etfs { display: block; min-width: 0 !important; }
       .etfs thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
       .etfs tbody { display: block; }
-      .etfs tbody tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; padding: 10px 20px; border-bottom: 1px solid var(--color-border); }
+      .etfs tbody tr { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 4px 12px; padding: 10px 20px; border-bottom: 1px solid var(--color-border); }
       .etfs tbody tr:has(> td[colspan]) { display: block; padding: 0; }
       .etfs tbody td[colspan] { display: block; }
       .etfs td.astryx-table-cell { display: block; width: auto; min-width: 0; max-width: none; height: auto; padding: 0; border: 0; }
       .etfs td.astryx-table-cell:nth-child(1) { display: none; }
       .etfs td.astryx-table-cell:nth-child(2) { grid-area: 1 / 1; }
-      .etfs td.astryx-table-cell:nth-child(5) { grid-area: 1 / 2; font-weight: 600; }
+      .etfs td.astryx-table-cell:nth-child(6) { grid-area: 1 / 2; color: var(--color-text-secondary); }
+      /* The header is hidden here, so the value carries the unit: $1,828mm. */
+      .etfs td.astryx-table-cell:nth-child(6) .num::before { content: '$'; }
+      .etfs td.astryx-table-cell:nth-child(6) .num::after { content: 'mm'; }
+      .etfs td.astryx-table-cell:nth-child(5) { grid-area: 1 / 3; font-weight: 600; }
       .etfs td.astryx-table-cell:nth-child(3) { grid-area: 2 / 1 / auto / -1; }
       .etfs td.astryx-table-cell:nth-child(4) { grid-area: 3 / 1 / auto / -1; padding-top: 2px; }
     }
@@ -225,6 +229,10 @@
       }
 
       const formatPct = (n) => `${Math.round(n * 10) / 10}%`;
+      // AUM in whole millions of USD: 1,828. The column header carries the unit.
+      const formatAum = (amount) => (amount < 5e5 ? '<1' : Math.round(amount / 1e6).toLocaleString('en-US'));
+      // Largest AUM first. A fund with no AUM goes last; the sort is stable, so those stay in alphabetical order.
+      const byAum = (a, b) => (b.aum?.amount || 0) - (a.aum?.amount || 0);
       const allocationText = (etf) => etf.allocation.map((a) => `${formatPct(a.pct)} ${a.what}`).join(' + ');
 
       // Free-form search: each word must be in at least one field.
@@ -279,7 +287,7 @@
       }
 
       return {
-        CATEGORIES, CATEGORY_HOVER, WHAT, COLOR_ORDER, TIE_ORDER, compareParts, hoverText, colorOf, leverage, categoryOf, formatPct, allocationText, matches,
+        CATEGORIES, CATEGORY_HOVER, WHAT, COLOR_ORDER, TIE_ORDER, compareParts, hoverText, colorOf, leverage, categoryOf, formatPct, formatAum, byAum, allocationText, matches,
         exposures, withSymbols, DEFAULT_PORTFOLIO, encodePortfolio, decodePortfolio,
       };
     })();
@@ -539,7 +547,7 @@
     }
 
     // The table needs this much page width to show each row on one line with no horizontal scroll.
-    const ONE_LINE = '(min-width: 1300px)';
+    const ONE_LINE = '(min-width: 1406px)';
     function useMedia(query) {
       const [on, setOn] = useState(() => matchMedia(query).matches);
       useEffect(() => {
@@ -566,9 +574,9 @@
         .filter((e) => +e.leverage.toFixed(2) >= leverage[0] && +e.leverage.toFixed(2) <= leverage[1]),
         [etfs, query, showClosed, hideUpcoming, leverage]);
 
-      // etf.json is in alphabetical order. Number the rows in display order: group by group.
+      // Number the rows in display order: group by group, and the largest AUM first in each group.
       const numbered = useMemo(() => PA.CATEGORIES
-        .flatMap((category) => rows.filter((row) => row.category === category))
+        .flatMap((category) => rows.filter((row) => row.category === category).sort(PA.byAum))
         .map((row, i) => ({ ...row, n: i + 1 })), [rows]);
       const grouped = useTableGroupedRows({
         data: numbered,
@@ -602,7 +610,7 @@
             </span>`,
         },
         {
-          key: 'name', header: 'Name', width: oneLine ? { type: 'pixel', value: 372 } : { type: 'proportional', value: 3, minWidth: 160 },
+          key: 'name', header: 'Name', width: oneLine ? { type: 'pixel', value: 372 } : { type: 'proportional', value: 3, minWidth: 140 },
           renderCell: (e) => html`
             <span className=${e.closed ? 'closed' : ''}>
               <${Link} href=${e.url} target="_blank" rel="noopener" color="primary" hasUnderline
@@ -610,7 +618,7 @@
             </span>`,
         },
         {
-          key: 'allocation', header: 'Allocation', width: { type: 'proportional', value: 4, minWidth: oneLine ? 604 : 200 },
+          key: 'allocation', header: 'Allocation', width: { type: 'proportional', value: 4, minWidth: oneLine ? 604 : 180 },
           renderCell: (e) => html`
             <span className="chips">
               ${e.allocation.map((a, i) => html`<${React.Fragment} key=${a.what}>
@@ -621,6 +629,11 @@
         {
           key: 'leverage', header: 'Leverage', align: 'end', width: { type: 'pixel', value: 90 },
           renderCell: (e) => html`<span className="num">${e.leverage.toFixed(2)}x</span>`,
+        },
+        {
+          key: 'aum', header: 'AUM ($mm)', align: 'end', width: { type: 'pixel', value: 108 },
+          renderCell: (e) => e.aum && html`<${Tooltip} content=${`Last Updated: ${e.aum.last_checked}`}>
+            <span className="num">${PA.formatAum(e.aum.amount)}</span><//>`,
         },
       ], [oneLine]);
 

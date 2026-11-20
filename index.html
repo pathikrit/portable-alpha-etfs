@@ -142,6 +142,7 @@
 
       // Asset classes. Each has one color, used for the tags, the pie and the exposure table (see --c-* in the CSS).
       // Known values of allocation[].what: [hover text, asset class]. A value that is not here shows as-is, in gray.
+      // Only what a fund in etf.json holds is here. No ticker gets a color just because a portfolio could hold it.
       const WHAT = {
         // Bonds: green
         Bonds: ['Bonds', 'bond'],
@@ -176,7 +177,6 @@
         // Small-cap equities: light blue
         IJR: ['US small-cap equities', 'small'],
         'US Small Cap': ['US small-cap equities', 'small'],
-        AVUV: ['US small-cap value equities', 'small'],
         // Long-short equity: purple-blue
         'L/S': ['Long-short US equity', 'longshort'],
         'Intl L/S': ['Long-short international equity', 'longshort'],

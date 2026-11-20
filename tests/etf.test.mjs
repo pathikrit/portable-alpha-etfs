@@ -81,10 +81,10 @@ test('each allocation is in order: largest pct first, then by asset class, then 
 });
 
 test('parts with the same pct go equities, bonds, commodities, managed futures, crypto', () => {
-  const parts = ['BTC', 'MF', 'Gold', 'GOVT', 'L/S', 'AVUV', 'VT', 'SPY', 'ZZZZ', 'QQQ'].map((what) => ({ pct: 50, what }));
+  const parts = ['BTC', 'MF', 'Gold', 'GOVT', 'L/S', 'IJR', 'VT', 'SPY', 'ZZZZ', 'QQQ'].map((what) => ({ pct: 50, what }));
   parts.push({ pct: 60, what: 'ETH' });
   assert.deepEqual(parts.sort(PA.compareParts).map((part) => part.what),
-    ['ETH', 'QQQ', 'SPY', 'VT', 'AVUV', 'L/S', 'GOVT', 'Gold', 'MF', 'BTC', 'ZZZZ']);
+    ['ETH', 'QQQ', 'SPY', 'VT', 'IJR', 'L/S', 'GOVT', 'Gold', 'MF', 'BTC', 'ZZZZ']);
   assert.deepEqual([...PA.TIE_ORDER].sort(), [...PA.COLOR_ORDER].sort());
 });
 
@@ -135,10 +135,10 @@ test('portfolio exposure: 40% RSSX + 30% RSBT + 30% AVUV', () => {
 test('exposure rows are grouped by color, and sorted by size within a color', () => {
   const list = [
     { ticker: 'AAA', allocation: [{ pct: 10, what: 'BIL' }, { pct: 50, what: 'GOVT' }, { pct: 20, what: 'Gold' }, { pct: 30, what: 'CTA' }] },
-    { ticker: 'BBB', allocation: [{ pct: 5, what: 'SPY' }, { pct: 40, what: 'AVUV' }, { pct: 15, what: 'MF' }, { pct: 25, what: 'AHLT' }, { pct: 60, what: 'BTC' }] },
+    { ticker: 'BBB', allocation: [{ pct: 5, what: 'SPY' }, { pct: 40, what: 'IJR' }, { pct: 15, what: 'MF' }, { pct: 25, what: 'AHLT' }, { pct: 60, what: 'BTC' }] },
   ];
   const result = PA.exposures([{ ticker: 'AAA', weight: 40 }, { ticker: 'BBB', weight: 40 }, { ticker: 'ZZZZ', weight: 20 }], list);
-  assert.deepEqual(Array.from(result.rows, (row) => row.what), ['SPY', 'AVUV', 'AHLT', 'MF', 'BTC', 'CTA', 'Gold', 'GOVT', 'BIL', 'ZZZZ']);
+  assert.deepEqual(Array.from(result.rows, (row) => row.what), ['SPY', 'IJR', 'AHLT', 'MF', 'BTC', 'CTA', 'Gold', 'GOVT', 'BIL', 'ZZZZ']);
   for (const [, color] of Object.values(PA.WHAT)) assert.ok(PA.COLOR_ORDER.includes(color), color);
 });
 
@@ -158,6 +158,15 @@ test('the default portfolio is 20% each of 5 funds, and its listed funds are in 
   for (const ticker of ['RSSX', 'RSBT', 'WTLS', 'GMIX']) assert.ok(tickers.has(ticker), ticker);
   const result = PA.exposures(PA.DEFAULT_PORTFOLIO, PA.withSymbols(etfs));
   assert.equal(result.weight, 100);
+  // AVUV is not in etf.json and no fund holds it, so it is gray until the user picks its asset class.
+  const avuv = result.rows.find((row) => row.what === 'AVUV');
+  assert.deepEqual([avuv.color, avuv.pickable], ['other', true]);
+});
+
+test('WHAT has only what a fund holds: no other ticker has a color of its own', () => {
+  const held = new Set(etfs.flatMap((etf) => etf.allocation.map((part) => part.what)));
+  for (const what of Object.keys(PA.WHAT)) assert.ok(held.has(what), `${what} is in WHAT, but no fund in etf.json holds it`);
+  for (const what of held) assert.ok(Object.hasOwn(PA.WHAT, what), `${what} is not in WHAT`);
 });
 
 test('a ticker that is not known gets the gray "other" color', () => {
@@ -171,7 +180,7 @@ test('a picked asset class gives a ticker that is not known its color and its pl
   assert.deepEqual(rows('AAA:50,IBIT:25,VTI:25'), [['SPY', 'large', false], ['GOVT', 'bond', false], ['IBIT', 'other', true], ['VTI', 'other', true]]);
   assert.deepEqual(rows('AAA:50,IBIT:25:crypto,VTI:25:large'), [['SPY', 'large', false], ['VTI', 'large', true], ['IBIT', 'crypto', true], ['GOVT', 'bond', false]]);
   // A ticker that WHAT knows, and a fund in the list, keep their own colors.
-  assert.deepEqual(rows('AAA:50:crypto,AVUV:50:bond'), [['SPY', 'large', false], ['AVUV', 'small', false], ['GOVT', 'bond', false]]);
+  assert.deepEqual(rows('AAA:50:crypto,IJR:50:bond'), [['SPY', 'large', false], ['IJR', 'small', false], ['GOVT', 'bond', false]]);
   // Two holdings of the same ticker are one row, with the class that was picked.
   assert.deepEqual(rows('IBIT:50,IBIT:50:crypto'), [['IBIT', 'crypto', true]]);
   assert.deepEqual(Object.keys(PA.CLASS_NAME).sort(), [...PA.COLOR_ORDER].sort());

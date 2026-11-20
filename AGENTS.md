@@ -70,6 +70,9 @@ Read this before you change `index.html` or `etf.json`.
   The classes and colours are the `--c-*` variables and the `WHAT` map in `index.html`:
   green bonds; dark, medium and light blue for large-cap, global and small-cap equity; purple-blue long-short;
   gold commodities and miners; purple managed futures, carry and macro; red crypto; gray for a ticker not in the map.
+- A ticker that is in neither `etf.json` nor `WHAT` is gray. Its dot in the exposure table is a button
+  that opens a menu of the asset classes (`CLASS_NAME`). The pick is the third part of the holding
+  in the URL, `IBIT:20:crypto`, and it is dropped when the holding's ticker changes.
 - The table group does not come from the colour. CTA has the commodity colour (the owner's choice)
   but counts as Managed Futures.
 

@@ -165,6 +165,25 @@ test('a ticker that is not known gets the gray "other" color', () => {
   assert.equal(PA.hoverText('ZZZZ'), 'ZZZZ');
 });
 
+test('a picked asset class gives a ticker that is not known its color and its place in the order', () => {
+  const list = [{ ticker: 'AAA', allocation: [{ pct: 100, what: 'SPY' }, { pct: 100, what: 'GOVT' }] }];
+  const rows = (text) => Array.from(PA.exposures(PA.decodePortfolio(text), list).rows, (row) => [row.what, row.color, row.pickable]);
+  assert.deepEqual(rows('AAA:50,IBIT:25,VTI:25'), [['SPY', 'large', false], ['GOVT', 'bond', false], ['IBIT', 'other', true], ['VTI', 'other', true]]);
+  assert.deepEqual(rows('AAA:50,IBIT:25:crypto,VTI:25:large'), [['SPY', 'large', false], ['VTI', 'large', true], ['IBIT', 'crypto', true], ['GOVT', 'bond', false]]);
+  // A ticker that WHAT knows, and a fund in the list, keep their own colors.
+  assert.deepEqual(rows('AAA:50:crypto,AVUV:50:bond'), [['SPY', 'large', false], ['AVUV', 'small', false], ['GOVT', 'bond', false]]);
+  // Two holdings of the same ticker are one row, with the class that was picked.
+  assert.deepEqual(rows('IBIT:50,IBIT:50:crypto'), [['IBIT', 'crypto', true]]);
+  assert.deepEqual(Object.keys(PA.CLASS_NAME).sort(), [...PA.COLOR_ORDER].sort());
+});
+
+test('a picked asset class survives the URL, and one that is not known is dropped', () => {
+  const text = 'RSSX:40,IBIT:30:crypto,VTI:30:large';
+  assert.equal(PA.encodePortfolio(PA.decodePortfolio(text)), text);
+  for (const bad of ['IBIT:30:other', 'IBIT:30:pink', 'IBIT:30:constructor', 'IBIT:30:'])
+    assert.equal(PA.encodePortfolio(PA.decodePortfolio(bad)), 'IBIT:30', bad);
+});
+
 test('search looks at all columns', () => {
   const etf = { ticker: 'RSST', name: 'Return Stacked U.S. Stocks & Managed Futures ETF', closed: false, upcoming: false,
     allocation: [{ pct: 100, what: 'SPY' }, { pct: 100, what: 'MF' }] };

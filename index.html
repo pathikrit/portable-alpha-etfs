@@ -82,6 +82,10 @@
     .donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
     .donut-value { font-size: 48px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
     .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-inline-end: 8px; background: var(--swatch); }
+    /* The dot of a ticker that is not in the list is a button: it opens the asset class menu. */
+    button.swatch { position: relative; padding: 0; border: 0; cursor: pointer; appearance: none; outline: 1px solid var(--color-text-secondary); outline-offset: 2px; }
+    button.swatch::after { content: ''; position: absolute; inset: -9px; }
+    button.swatch:hover, button.swatch:focus-visible, button.swatch[aria-expanded="true"] { outline: 2px solid var(--color-text-primary); }
     .num { font-variant-numeric: tabular-nums; }
     .toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
     .toolbar > :first-child { flex: 1 1 260px; max-width: 420px; }
@@ -214,6 +218,13 @@
       // Order of the parts of one fund that have the same pct: equities, bonds, commodities, managed futures, crypto.
       const TIE_ORDER = ['large', 'global', 'small', 'longshort', 'bond', 'commodity', 'futures', 'crypto', 'other'];
       const tieRank = (what) => TIE_ORDER.indexOf(colorOf(what));
+      // Asset class -> name. A ticker that is not in WHAT is gray ("other") until the user picks a class for it.
+      const CLASS_NAME = {
+        large: 'US Large Cap', global: 'Global Equity', small: 'Small Cap', longshort: 'Long-Short',
+        bond: 'Bonds', commodity: 'Commodities', futures: 'Managed Futures / Macro', crypto: 'Crypto', other: 'Other',
+      };
+      // The class that the user picked for a holding, or undefined. "other" is the default, so it is not stored.
+      const pickedClass = (cls) => (cls !== 'other' && Object.hasOwn(CLASS_NAME, cls || '') ? cls : undefined);
       // The order of allocation[] in etf.json: largest pct first, then TIE_ORDER, then what.
       const compareParts = (a, b) => b.pct - a.pct || tieRank(a.what) - tieRank(b.what) || (a.what < b.what ? -1 : a.what > b.what ? 1 : 0);
 
@@ -245,11 +256,12 @@
         return query.toLowerCase().split(/\s+/).filter(Boolean).every((word) => haystack.includes(word));
       }
 
-      // holdings: [{ticker, weight}], weight in percent of the portfolio.
-      // A ticker that is not in etfs counts as 100% itself.
+      // holdings: [{ticker, weight, cls}], weight in percent of the portfolio.
+      // A ticker that is not in etfs counts as 100% itself. If it is not in WHAT either, cls gives its asset class.
       function exposures(holdings, etfs) {
         const byTicker = new Map(etfs.filter((e) => e.symbol || e.ticker).map((e) => [(e.symbol || e.ticker).toUpperCase(), e]));
         const sums = new Map();
+        const picked = new Map();
         const add = (what, pct) => sums.set(what, (sums.get(what) || 0) + pct);
         let weight = 0;
         for (const h of holdings) {
@@ -259,12 +271,19 @@
           weight += w;
           const etf = byTicker.get(ticker);
           if (etf) for (const a of etf.allocation) add(a.what, (w * a.pct) / 100);
-          else add(ticker, w);
+          else {
+            add(ticker, w);
+            if (!Object.hasOwn(WHAT, ticker)) picked.set(ticker, picked.get(ticker) || pickedClass(h.cls));
+          }
         }
         const total = [...sums.values()].reduce((a, b) => a + b, 0);
         // By color, in COLOR_ORDER, then by size. The table and the pie both use this order.
-        const rank = (row) => COLOR_ORDER.indexOf(colorOf(row.what));
-        const rows = [...sums].map(([what, pct]) => ({ what, pct, normalized: total ? (pct / total) * 100 : 0 }))
+        const rank = (row) => COLOR_ORDER.indexOf(row.color);
+        const rows = [...sums]
+          .map(([what, pct]) => ({
+            what, pct, normalized: total ? (pct / total) * 100 : 0,
+            color: picked.get(what) || colorOf(what), pickable: picked.has(what),
+          }))
           .sort((a, b) => rank(a) - rank(b) || b.pct - a.pct);
         // Leverage is against NAV: holdings that add to less than 100% leave the remainder in cash.
         return { rows, total, weight, leverage: total / 100 };
@@ -275,19 +294,20 @@
       const withSymbols = (etfs) => etfs.map((etf, i) => ({ ...etf, symbol: etf.ticker || `TBD-${i + 1}` }));
 
       const DEFAULT_PORTFOLIO = ['RSSX', 'RSBT', 'WTLS', 'GMIX', 'AVUV'].map((ticker) => ({ ticker, weight: 20 }));
-      // Portfolio in the URL: #p=RSSX:40,RSBT:30,AVUV:30
-      const encodePortfolio = (holdings) =>
-        holdings.filter((h) => h.ticker).map((h) => `${h.ticker}:${Number(h.weight) || 0}`).join(',');
+      // Portfolio in the URL: #p=RSSX:40,RSBT:30,AVUV:20,IBIT:10:crypto (the third part is a picked asset class)
+      const encodePortfolio = (holdings) => holdings.filter((h) => h.ticker)
+        .map((h) => [h.ticker, Number(h.weight) || 0, pickedClass(h.cls)].filter((part) => part !== undefined).join(':')).join(',');
       function decodePortfolio(text) {
         const holdings = (text || '').split(',').map((part) => {
-          const [ticker, weight] = part.split(':');
-          return { ticker: (ticker || '').trim().toUpperCase().replace(/[^A-Z0-9.\-]/g, ''), weight: Number(weight) || 0 };
+          const [ticker, weight, cls] = part.split(':');
+          const holding = { ticker: (ticker || '').trim().toUpperCase().replace(/[^A-Z0-9.\-]/g, ''), weight: Number(weight) || 0 };
+          return pickedClass(cls) ? { ...holding, cls } : holding;
         }).filter((h) => h.ticker);
         return holdings.length ? holdings : null;
       }
 
       return {
-        CATEGORIES, CATEGORY_HOVER, WHAT, COLOR_ORDER, TIE_ORDER, compareParts, hoverText, colorOf, leverage, categoryOf, formatPct, formatAum, byAum, allocationText, matches,
+        CATEGORIES, CATEGORY_HOVER, WHAT, COLOR_ORDER, TIE_ORDER, CLASS_NAME, compareParts, hoverText, colorOf, leverage, categoryOf, formatPct, formatAum, byAum, allocationText, matches,
         exposures, withSymbols, DEFAULT_PORTFOLIO, encodePortfolio, decodePortfolio,
       };
     })();
@@ -300,7 +320,7 @@
     import Chart from 'chart.js/auto';
     import ChartDataLabels from 'chartjs-plugin-datalabels';
     import {
-      Badge, Banner, Button, Card, Heading, HStack, IconButton, Link, NumberInput, Slider, Switch, Table, Text, TextInput,
+      Badge, Banner, Button, Card, DropdownMenu, DropdownMenuRadioGroup, DropdownMenuRadioItem, Heading, HStack, IconButton, Link, NumberInput, Slider, Switch, Table, Text, TextInput,
       Tooltip, Typeahead, VStack, useTableGroupedRows,
     } from '@astryxdesign/core';
 
@@ -386,7 +406,7 @@
           datasets: [{
             data: [...result.rows.map((r) => r.normalized * invested), gap],
             nav: [...result.rows.map((r) => r.pct), 0],
-            backgroundColor: [...result.rows.map((r) => resolveColor(cssColor(r.what))), 'transparent'],
+            backgroundColor: [...result.rows.map((r) => resolveColor(`var(--c-${r.color})`)), 'transparent'],
             borderColor: resolveColor('var(--color-background-card)'),
             borderWidth: 2,
             hoverOffset: 4,
@@ -439,9 +459,24 @@
         </div>`;
     }
 
-    const EXPOSURE_COLUMNS = [
-      { key: 'what', header: 'Asset', renderCell: (r) => html`<${Tooltip} content=${PA.hoverText(r.what)}>
-          <span><span className="swatch" style=${{ '--swatch': r.total ? 'transparent' : cssColor(r.what) }}></span>${r.total ? html`<strong>${r.what}</strong>` : r.what}</span><//>` },
+    const Swatch = ({ color }) => html`<span className="swatch" style=${{ '--swatch': color ? `var(--c-${color})` : 'transparent' }}></span>`;
+    // The dot of a ticker that is not in the list opens a menu of the asset classes.
+    function ClassPicker({ row, onPick }) {
+      return html`
+        <${DropdownMenu} menuWidth="max-content" menuMaxHeight=${480}
+          renderTrigger=${(props) => html`<button type="button" ...${props} className="swatch" title="Asset class"
+            aria-label=${`Asset class of ${row.what}`} style=${{ '--swatch': `var(--c-${row.color})` }}></button>`}>
+          <${DropdownMenuRadioGroup} label="Asset class" value=${row.color} onChange=${(cls) => onPick(row.what, cls)}>
+            ${PA.TIE_ORDER.map((cls) => html`<${DropdownMenuRadioItem} key=${cls} value=${cls}
+              label=${html`<span><${Swatch} color=${cls} />${PA.CLASS_NAME[cls]}</span>`} />`)}
+          <//>
+        <//>`;
+    }
+    const exposureColumns = (onPick) => [
+      { key: 'what', header: 'Asset', renderCell: (r) => (r.pickable
+        ? html`<span><${ClassPicker} row=${r} onPick=${onPick} />${r.what}</span>`
+        : html`<${Tooltip} content=${PA.hoverText(r.what)}>
+          <span><${Swatch} color=${r.color} />${r.total ? html`<strong>${r.what}</strong>` : r.what}</span><//>`) },
       { key: 'pct', header: '% of NAV', align: 'end', renderCell: (r) => html`<span className="num">${PA.formatPct(r.pct)}</span>` },
       { key: 'normalized', header: '% of gross', align: 'end', renderCell: (r) => html`<span className="num">${PA.formatPct(r.normalized)}</span>` },
     ];
@@ -486,9 +521,14 @@
       const commitTyped = (id) => {
         const ticker = (typed.current[id] || '').trim().toUpperCase().replace(/[^A-Z0-9.\-]/g, '');
         delete typed.current[id];
-        if (ticker) update(id, { ticker });
+        if (ticker) setTicker(id, ticker);
       };
       const update = (id, patch) => setHoldings(holdings.map((h) => (h.id === id ? { ...h, ...patch } : h)));
+      // A picked asset class belongs to its ticker: a new ticker starts with none.
+      const setTicker = (id, ticker) =>
+        setHoldings(holdings.map((h) => (h.id !== id || h.ticker === ticker ? h : { id, ticker, weight: h.weight })));
+      const columns = useMemo(() => exposureColumns((ticker, cls) =>
+        setHoldings((old) => old.map((h) => (h.ticker.trim().toUpperCase() === ticker ? { ...h, cls } : h)))), [setHoldings]);
       const result = useMemo(() => PA.exposures(holdings, etfs), [holdings, etfs]);
       const weightOk = Math.abs(result.weight - 100) < 0.05;
       const overweight = result.weight > 100.05;
@@ -507,7 +547,7 @@
                       <${Typeahead} label="Ticker" isLabelHidden size="sm" placeholder="Ticker"
                         searchSource=${source} hasEntriesOnFocus
                         value=${h.ticker ? { id: h.ticker, label: h.ticker, name: '' } : null}
-                        onChange=${(item) => { delete typed.current[h.id]; update(h.id, { ticker: item ? item.id : '' }); }}
+                        onChange=${(item) => { delete typed.current[h.id]; setTicker(h.id, item ? item.id : ''); }}
                         onChangeQuery=${(text) => { typed.current[h.id] = text; }}
                         onBlur=${() => commitTyped(h.id)}
                         renderItem=${(item) => html`<span><strong>${item.label}</strong> <${Text} color="secondary" type="supporting">${item.name}<//></span>`} />
@@ -537,7 +577,7 @@
                 <${Heading} level=${3}>Exposure<//>
                 ${result.rows.length > 0 && html`
                   <${Table} data=${[...result.rows, { what: 'Gross', pct: result.total, normalized: 100, total: true }]}
-                    idKey="what" columns=${EXPOSURE_COLUMNS} density="compact" dividers="grid" />`}
+                    idKey="what" columns=${columns} density="compact" dividers="grid" />`}
               <//>
               <div className="donut-col">${result.rows.length > 0 && html`<${Donut} result=${result} />`}</div>
 `}

@@ -61,11 +61,18 @@ test('each allocation has parts with a positive pct and a what', () => {
   }
 });
 
-test('each allocation is in order: largest pct first, then by what', () => {
+test('each allocation is in order: largest pct first, then by asset class, then by what', () => {
   for (const etf of etfs) {
-    const sorted = [...etf.allocation].sort((a, b) => b.pct - a.pct || (a.what < b.what ? -1 : 1));
-    assert.deepEqual(etf.allocation, sorted, label(etf));
+    assert.deepEqual(etf.allocation, [...etf.allocation].sort(PA.compareParts), label(etf));
   }
+});
+
+test('parts with the same pct go equities, bonds, commodities, managed futures, crypto', () => {
+  const parts = ['BTC', 'MF', 'Gold', 'GOVT', 'L/S', 'AVUV', 'VT', 'SPY', 'ZZZZ', 'QQQ'].map((what) => ({ pct: 50, what }));
+  parts.push({ pct: 60, what: 'ETH' });
+  assert.deepEqual(parts.sort(PA.compareParts).map((part) => part.what),
+    ['ETH', 'QQQ', 'SPY', 'VT', 'AVUV', 'L/S', 'GOVT', 'Gold', 'MF', 'BTC', 'ZZZZ']);
+  assert.deepEqual([...PA.TIE_ORDER].sort(), [...PA.COLOR_ORDER].sort());
 });
 
 test('tickers and names are unique', () => {

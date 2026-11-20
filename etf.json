@@ -31,11 +31,11 @@
     "allocation": [
       {
         "pct": 70,
-        "what": "Macro"
+        "what": "VT"
       },
       {
         "pct": 70,
-        "what": "VT"
+        "what": "Macro"
       }
     ]
   },
@@ -47,19 +47,19 @@
     "allocation": [
       {
         "pct": 75,
-        "what": "BTC"
-      },
-      {
-        "pct": 75,
         "what": "Gold"
       },
       {
-        "pct": 25,
-        "what": "ETH"
+        "pct": 75,
+        "what": "BTC"
       },
       {
         "pct": 25,
         "what": "Silver"
+      },
+      {
+        "pct": 25,
+        "what": "ETH"
       }
     ]
   },
@@ -71,11 +71,11 @@
     "allocation": [
       {
         "pct": 100,
-        "what": "BTC"
+        "what": "Gold"
       },
       {
         "pct": 100,
-        "what": "Gold"
+        "what": "BTC"
       }
     ]
   },
@@ -104,11 +104,11 @@
     "allocation": [
       {
         "pct": 100,
-        "what": "CTA"
+        "what": "SPY"
       },
       {
         "pct": 100,
-        "what": "SPY"
+        "what": "CTA"
       }
     ]
   },
@@ -202,7 +202,7 @@
     "allocation": [
       {
         "pct": 70,
-        "what": "Gold"
+        "what": "SPY"
       },
       {
         "pct": 70,
@@ -210,7 +210,7 @@
       },
       {
         "pct": 70,
-        "what": "SPY"
+        "what": "Gold"
       }
     ]
   },
@@ -239,11 +239,11 @@
     "allocation": [
       {
         "pct": 90,
-        "what": "Gold"
+        "what": "SPY"
       },
       {
         "pct": 90,
-        "what": "SPY"
+        "what": "Gold"
       }
     ]
   },
@@ -271,11 +271,11 @@
     "allocation": [
       {
         "pct": 90,
-        "what": "Gold"
+        "what": "STIP"
       },
       {
         "pct": 90,
-        "what": "STIP"
+        "what": "Gold"
       }
     ]
   },
@@ -287,11 +287,11 @@
     "allocation": [
       {
         "pct": 100,
-        "what": "Macro"
+        "what": "SPY"
       },
       {
         "pct": 100,
-        "what": "SPY"
+        "what": "Macro"
       }
     ]
   },
@@ -343,11 +343,11 @@
     "allocation": [
       {
         "pct": 75,
-        "what": "MF"
+        "what": "SPY"
       },
       {
         "pct": 75,
-        "what": "SPY"
+        "what": "MF"
       }
     ]
   },
@@ -359,11 +359,11 @@
     "allocation": [
       {
         "pct": 100,
-        "what": "BTC"
+        "what": "Gold"
       },
       {
         "pct": 100,
-        "what": "Gold"
+        "what": "BTC"
       }
     ]
   },
@@ -376,11 +376,11 @@
     "allocation": [
       {
         "pct": 100,
-        "what": "BTC"
+        "what": "GOVT"
       },
       {
         "pct": 100,
-        "what": "GOVT"
+        "what": "BTC"
       }
     ]
   },
@@ -392,11 +392,11 @@
     "allocation": [
       {
         "pct": 100,
-        "what": "BTC"
+        "what": "SPY"
       },
       {
         "pct": 100,
-        "what": "SPY"
+        "what": "BTC"
       }
     ]
   },
@@ -409,11 +409,11 @@
     "allocation": [
       {
         "pct": 100,
-        "what": "Gold"
+        "what": "SPY"
       },
       {
         "pct": 100,
-        "what": "SPY"
+        "what": "Gold"
       }
     ]
   },
@@ -426,11 +426,11 @@
     "allocation": [
       {
         "pct": 100,
-        "what": "GOVT"
+        "what": "SPY"
       },
       {
         "pct": 100,
-        "what": "SPY"
+        "what": "GOVT"
       }
     ]
   },
@@ -475,11 +475,11 @@
     "allocation": [
       {
         "pct": 100,
-        "what": "MF"
+        "what": "SPY"
       },
       {
         "pct": 100,
-        "what": "SPY"
+        "what": "MF"
       }
     ]
   },
@@ -545,11 +545,11 @@
     "allocation": [
       {
         "pct": 100,
-        "what": "AHLT"
+        "what": "SPY"
       },
       {
         "pct": 100,
-        "what": "SPY"
+        "what": "AHLT"
       }
     ]
   },
@@ -626,11 +626,11 @@
     "allocation": [
       {
         "pct": 100,
-        "what": "BTC"
+        "what": "QQQ"
       },
       {
         "pct": 100,
-        "what": "QQQ"
+        "what": "BTC"
       }
     ]
   },
@@ -643,11 +643,11 @@
     "allocation": [
       {
         "pct": 100,
-        "what": "BTC"
+        "what": "SPY"
       },
       {
         "pct": 100,
-        "what": "SPY"
+        "what": "BTC"
       }
     ]
   },
@@ -703,11 +703,11 @@
     "allocation": [
       {
         "pct": 100,
-        "what": "GOVT"
+        "what": "MNA"
       },
       {
         "pct": 100,
-        "what": "MNA"
+        "what": "GOVT"
       }
     ]
   },
@@ -735,11 +735,11 @@
     "allocation": [
       {
         "pct": 100,
-        "what": "Carry"
+        "what": "GOVT"
       },
       {
         "pct": 100,
-        "what": "GOVT"
+        "what": "Carry"
       }
     ]
   },
@@ -768,11 +768,11 @@
     "allocation": [
       {
         "pct": 100,
-        "what": "MF"
+        "what": "VXUS"
       },
       {
         "pct": 100,
-        "what": "VXUS"
+        "what": "MF"
       }
     ]
   },
@@ -784,11 +784,11 @@
     "allocation": [
       {
         "pct": 100,
-        "what": "GOVT"
+        "what": "VT"
       },
       {
         "pct": 100,
-        "what": "VT"
+        "what": "GOVT"
       }
     ]
   },
@@ -800,11 +800,11 @@
     "allocation": [
       {
         "pct": 100,
-        "what": "MF"
+        "what": "SPY"
       },
       {
         "pct": 100,
-        "what": "SPY"
+        "what": "MF"
       }
     ]
   },
@@ -836,11 +836,11 @@
     "allocation": [
       {
         "pct": 100,
-        "what": "Carry"
+        "what": "SPY"
       },
       {
         "pct": 100,
-        "what": "SPY"
+        "what": "Carry"
       }
     ]
   },
@@ -885,11 +885,11 @@
     "allocation": [
       {
         "pct": 100,
-        "what": "MINT"
+        "what": "SPY"
       },
       {
         "pct": 100,
-        "what": "SPY"
+        "what": "MINT"
       }
     ]
   },
@@ -901,11 +901,11 @@
     "allocation": [
       {
         "pct": 100,
-        "what": "MF"
+        "what": "SPY"
       },
       {
         "pct": 100,
-        "what": "SPY"
+        "what": "MF"
       }
     ]
   },
@@ -977,11 +977,11 @@
     "allocation": [
       {
         "pct": 90,
-        "what": "L/S"
+        "what": "US Small Cap"
       },
       {
         "pct": 90,
-        "what": "US Small Cap"
+        "what": "L/S"
       }
     ]
   },
@@ -1010,11 +1010,11 @@
     "allocation": [
       {
         "pct": 100,
-        "what": "BTC"
+        "what": "Oil"
       },
       {
         "pct": 100,
-        "what": "Oil"
+        "what": "BTC"
       }
     ]
   },
@@ -1058,11 +1058,11 @@
     "allocation": [
       {
         "pct": 90,
-        "what": "L/S"
+        "what": "SPY"
       },
       {
         "pct": 90,
-        "what": "SPY"
+        "what": "L/S"
       }
     ]
   },
@@ -1075,11 +1075,11 @@
     "allocation": [
       {
         "pct": 100,
-        "what": "LCSIX"
+        "what": "SPY"
       },
       {
         "pct": 100,
-        "what": "SPY"
+        "what": "LCSIX"
       }
     ]
   },
@@ -1109,11 +1109,11 @@
     "allocation": [
       {
         "pct": 100,
-        "what": "Bonds"
+        "what": "VT"
       },
       {
         "pct": 100,
-        "what": "VT"
+        "what": "Bonds"
       }
     ]
   },
@@ -1126,11 +1126,11 @@
     "allocation": [
       {
         "pct": 100,
-        "what": "CTA"
+        "what": "VT"
       },
       {
         "pct": 100,
-        "what": "VT"
+        "what": "CTA"
       }
     ]
   },
@@ -1143,11 +1143,11 @@
     "allocation": [
       {
         "pct": 100,
-        "what": "Bonds"
+        "what": "SPY"
       },
       {
         "pct": 100,
-        "what": "SPY"
+        "what": "Bonds"
       }
     ]
   },
@@ -1160,11 +1160,11 @@
     "allocation": [
       {
         "pct": 100,
-        "what": "MF"
+        "what": "SPY"
       },
       {
         "pct": 100,
-        "what": "SPY"
+        "what": "MF"
       }
     ]
   }

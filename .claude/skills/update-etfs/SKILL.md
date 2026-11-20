@@ -31,7 +31,8 @@ Your task is to make `etf.json` agree with the facts of today.
   for the exposure (SPY, GOVT) or a label (Gold, MF, BTC). Use labels that are already in the file where possible.
   `index.html` has the hover text and the asset class (which gives the color) of each label in `WHAT`.
   Add each new label there, or it shows in gray with no hover text.
-- Put the parts of `allocation` in order: the largest `pct` first, then `what` in alphabetical order.
+- Put the parts of `allocation` in order: the largest `pct` first. Parts with the same `pct` go by asset class
+  (equities, bonds, commodities, managed futures, crypto: `TIE_ORDER` in `index.html`), then `what` in alphabetical order.
   For example, `100 SPY`, `60 DBMF`.
 - The page calculates the group from the allocation: BTC or ETH gives "Crypto";
   MF, CTA, Carry or Macro gives "Managed Futures"; the remaining funds are "Classic Combos", divided at 1.75x leverage.

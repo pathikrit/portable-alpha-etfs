@@ -207,6 +207,12 @@
       // blues, purples, red, gold, green, gray.
       const COLOR_ORDER = ['large', 'global', 'small', 'longshort', 'futures', 'crypto', 'commodity', 'bond', 'other'];
 
+      // Order of the parts of one fund that have the same pct: equities, bonds, commodities, managed futures, crypto.
+      const TIE_ORDER = ['large', 'global', 'small', 'longshort', 'bond', 'commodity', 'futures', 'crypto', 'other'];
+      const tieRank = (what) => TIE_ORDER.indexOf(colorOf(what));
+      // The order of allocation[] in etf.json: largest pct first, then TIE_ORDER, then what.
+      const compareParts = (a, b) => b.pct - a.pct || tieRank(a.what) - tieRank(b.what) || (a.what < b.what ? -1 : a.what > b.what ? 1 : 0);
+
       const totalPct = (etf) => etf.allocation.reduce((sum, a) => sum + a.pct, 0);
       const leverage = (etf) => totalPct(etf) / 100;
 
@@ -273,7 +279,7 @@
       }
 
       return {
-        CATEGORIES, CATEGORY_HOVER, WHAT, COLOR_ORDER, hoverText, colorOf, leverage, categoryOf, formatPct, allocationText, matches,
+        CATEGORIES, CATEGORY_HOVER, WHAT, COLOR_ORDER, TIE_ORDER, compareParts, hoverText, colorOf, leverage, categoryOf, formatPct, allocationText, matches,
         exposures, withSymbols, DEFAULT_PORTFOLIO, encodePortfolio, decodePortfolio,
       };
     })();

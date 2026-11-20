@@ -187,8 +187,14 @@ test('the build writes etf.json into the page', () => {
   assert.ok(!/fetch\(/.test(built), 'the page does not fetch its data');
 });
 
-test('AUM shows in millions with 2 decimals', () => {
-  assert.equal(PA.formatAum(65420000), '$65.42M');
-  assert.equal(PA.formatAum(1828178690), '$1,828.18M');
-  assert.equal(PA.formatAum(458700), '$0.46M');
+test('AUM shows in whole millions', () => {
+  assert.equal(PA.formatAum(65420000), '65');
+  assert.equal(PA.formatAum(1828178690), '1,828');
+  assert.equal(PA.formatAum(500000), '1');
+  assert.equal(PA.formatAum(491073), '<1');
+});
+
+test('rows sort by AUM, largest first, and funds with no AUM stay last in their order', () => {
+  const funds = [{ t: 'A' }, { t: 'B', aum: { amount: 5 } }, { t: 'C' }, { t: 'D', aum: { amount: 9 } }];
+  assert.equal(funds.sort(PA.byAum).map((f) => f.t).join(''), 'DBAC');
 });

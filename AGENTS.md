@@ -56,7 +56,8 @@ Read this before you change `index.html` or `etf.json`.
 - Use Astryx components and variants first. Read the component docs in the npm package
   (`@astryxdesign/core/src/<Name>/<Name>.doc.mjs`) before you style something by hand.
 - Remove features that do not earn their place. Column sorting and a per-row add button were both cut:
-  alphabetical order and search are enough.
+  one fixed order (largest AUM first in each group) and search are enough.
+- A column of amounts has its unit in the header, "AUM ($mm)", and whole numbers in the cells: 1,828.
 - A state tag replaces other marking. Closed funds have a red "Closed" tag, so no strikethrough.
 - Errors are red with a Font Awesome icon. An invalid input (weights over 100%) shows an error
   in place of the result; it does not render a wrong chart.

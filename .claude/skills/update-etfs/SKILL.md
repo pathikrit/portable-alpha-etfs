@@ -12,9 +12,12 @@ Your task is to make `etf.json` agree with the facts of today.
 
 - US-listed ETFs only. Do not add mutual funds, funds listed in other countries or UCITS funds.
 - A fund is in the list only if it stacks exposures. The allocation must add to more than 100%.
-- The required keys are `ticker`, `name`, `filing`, `url` and `allocation`. The optional keys are `closed` and `upcoming`.
-  Do not add other keys.
-  Do not add leverage (the page calculates it) or AUM (it changes).
+- The required keys are `ticker`, `name`, `filing`, `url` and `allocation`. The optional keys are `closed`, `upcoming`
+  and `aum`. Do not add other keys.
+  Do not add leverage (the page calculates it).
+- `aum`: `{"amount": 497351296, "last_checked": "2026-11-19"}`. `amount` is the net assets in USD, a whole number.
+  `last_checked` is the date on which the amount was read. Only `aum.mjs` writes this key (step 6); do not edit it by hand.
+  Only a trading fund has it: a closed or upcoming fund has no `aum`.
 - `ticker`: the exchange ticker. It is always there. Use `null` only for an upcoming fund that has no ticker yet.
 - `name`: the official fund name from the SEC filing or from the issuer.
   Remove "ETF", "Fund" or "Exchange-Traded Fund" from the end of the name. Each entry is an ETF.
@@ -73,23 +76,36 @@ Your task is to make `etf.json` agree with the facts of today.
 5. Keep `etf.json` in alphabetical order by `ticker`. Put the funds that have no ticker last, in alphabetical order by `name`.
    When an upcoming fund gets a ticker, move its entry to the correct position.
 
-6. Run the tests, then run the check again. Continue until the tests pass and each remaining flag has an explanation.
+6. Fill in the AUM. Do this after steps 1 to 5, because the script reads `closed` and `upcoming`:
+
+   ```bash
+   node .claude/skills/update-etfs/aum.mjs
+   ```
+
+   The script gets the net assets of each trading fund from Yahoo in one request and writes `aum` into `etf.json`.
+   It removes `aum` from a fund that is now closed or upcoming.
+   `NO AUM` shows that Yahoo has no figure for a trading fund. The script keeps the old `aum`, and its date shows its age.
+   Do not write an amount from a different source; tell the user about the fund in the report.
+
+7. Run the tests, then run the check again. Continue until the tests pass and each remaining flag has an explanation.
 
    ```bash
    make test
    ```
 
-7. If the user gave you a list of funds, compare each one with `etf.json`. Do not leave out a fund because
+8. If the user gave you a list of funds, compare each one with `etf.json`. Do not leave out a fund because
    the match is not certain: add it, tell the user what is not confirmed, and ask.
    Tell the user about each fund that is not in the file, with the reason (for example, a UCITS fund).
 
-8. Give the user a report: what changed with the source of each change, the flags that remain and why,
-   and the items that you could not confirm.
+9. Give the user a report: what changed with the source of each change, the flags that remain and why,
+   the trading funds that have no AUM, and the items that you could not confirm.
 
 ## Data sources
 
 - Quotes: `https://query1.finance.yahoo.com/v8/finance/chart/<TICKER>?range=5d&interval=1d`.
   HTTP 404 shows that the symbol does not exist. `meta.regularMarketTime` is the last trade.
+- AUM: `npx yahoo-finance2 quote '["RSSB","GDE"]'` gives `netAssets` for each symbol. `aum.mjs` uses it.
+  It is not an official API. A plain request to the same Yahoo endpoint fails, because it needs a cookie and a crumb.
 - EDGAR full-text search: `https://efts.sec.gov/LATEST/search-index?q=%22<words>%22&forms=485APOS,485BPOS,497`.
 - EDGAR series search: `https://www.sec.gov/cgi-bin/series?company=<trust name>`.
 - The SEC refuses requests that have no User-Agent. Use the User-Agent that is in `check.mjs`,

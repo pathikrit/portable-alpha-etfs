@@ -4,6 +4,10 @@
     "name": "State Street Bridgewater All Weather",
     "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000089966&type=485",
     "url": "https://www.ssga.com/us/en/intermediary/etfs/state-street-bridgewater-all-weather-etf-allw",
+    "aum": {
+      "amount": 1828178690,
+      "last_checked": "2026-11-19"
+    },
     "allocation": [
       {
         "pct": 72,
@@ -28,6 +32,10 @@
     "name": "Virtus AlphaSimplex Global Macro",
     "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000093089&type=485",
     "url": "https://www.virtus.com/products/virtus-alphasimplex-global-macro-etf",
+    "aum": {
+      "amount": 10589306,
+      "last_checked": "2026-11-19"
+    },
     "allocation": [
       {
         "pct": 70,
@@ -44,6 +52,10 @@
     "name": "Rareview 2X Bull Cryptocurrency & Precious Metals",
     "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000090077&type=485",
     "url": "https://rareviewcapital.com/2x-bull-cryptocurrency-precious-metals-etf/",
+    "aum": {
+      "amount": 3175317,
+      "last_checked": "2026-11-19"
+    },
     "allocation": [
       {
         "pct": 75,
@@ -68,6 +80,10 @@
     "name": "STKd 100% Bitcoin & 100% Gold",
     "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000087755&type=485",
     "url": "https://quantifyfunds.com/stackedbitcoingoldetf/btgd/",
+    "aum": {
+      "amount": 41740080,
+      "last_checked": "2026-11-19"
+    },
     "allocation": [
       {
         "pct": 100,
@@ -101,6 +117,10 @@
     "name": "Simplify US Equity PLUS Managed Futures Strategy",
     "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000096492&type=485",
     "url": "https://www.simplify.us/etfs/ctap-simplify-us-equity-plus-managed-futures-strategy-etf",
+    "aum": {
+      "amount": 166412816,
+      "last_checked": "2026-11-19"
+    },
     "allocation": [
       {
         "pct": 100,
@@ -117,6 +137,10 @@
     "name": "iMGP DBi Absolute Return",
     "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000109324&type=485",
     "url": "https://www.imgp.com/us/fund/US53700T6608-imgp-dbi-absolute-return-etf/",
+    "aum": {
+      "amount": 3488272,
+      "last_checked": "2026-11-19"
+    },
     "allocation": [
       {
         "pct": 100,
@@ -167,6 +191,10 @@
     "name": "Cambria Endowment Style",
     "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000088135&type=485",
     "url": "https://www.cambriafunds.com/endw",
+    "aum": {
+      "amount": 160420992,
+      "last_checked": "2026-11-19"
+    },
     "allocation": [
       {
         "pct": 33,
@@ -199,6 +227,10 @@
     "name": "First Trust Enhanced Stocks, Bonds & Gold",
     "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000096608&type=485",
     "url": "https://www.ftportfolios.com/retail/etf/etfsummary.aspx?Ticker=ESBG",
+    "aum": {
+      "amount": 1957146,
+      "last_checked": "2026-11-19"
+    },
     "allocation": [
       {
         "pct": 70,
@@ -236,6 +268,10 @@
     "name": "WisdomTree Efficient Gold Plus Equity Strategy",
     "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000073567&type=485",
     "url": "https://www.wisdomtree.com/us/products/capital-efficient/gde",
+    "aum": {
+      "amount": 374952032,
+      "last_checked": "2026-11-19"
+    },
     "allocation": [
       {
         "pct": 90,
@@ -252,6 +288,10 @@
     "name": "WisdomTree Efficient Gold Plus Gold Miners Strategy",
     "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000073568&type=485",
     "url": "https://www.wisdomtree.com/us/products/capital-efficient/gdmn",
+    "aum": {
+      "amount": 149979872,
+      "last_checked": "2026-11-19"
+    },
     "allocation": [
       {
         "pct": 90,
@@ -268,6 +308,10 @@
     "name": "WisdomTree Efficient TIPS Plus Gold",
     "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000096432&type=485",
     "url": "https://www.wisdomtree.com/investments/etfs/capital-efficient/gdt",
+    "aum": {
+      "amount": 10366769,
+      "last_checked": "2026-11-19"
+    },
     "allocation": [
       {
         "pct": 90,
@@ -320,6 +364,10 @@
     "name": "Direxion HCM Tactical Enhanced US",
     "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000080459&type=485",
     "url": "https://www.direxion.com/product/direxion-hcm-tactical-enhanced-us-etf",
+    "aum": {
+      "amount": 565103300,
+      "last_checked": "2026-11-19"
+    },
     "allocation": [
       {
         "pct": 80,
@@ -340,6 +388,10 @@
     "name": "Harbor Alpha Layering",
     "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000093653&type=485",
     "url": "https://www.harborcapital.com/etf/hold/",
+    "aum": {
+      "amount": 3922569,
+      "last_checked": "2026-11-19"
+    },
     "allocation": [
       {
         "pct": 75,
@@ -356,6 +408,10 @@
     "name": "IncomeSTKd 1x Bitcoin & 1x Gold Premium",
     "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000099119&type=485",
     "url": "https://quantifyfunds.com/optionsbasedincome/isbg/",
+    "aum": {
+      "amount": 6551420,
+      "last_checked": "2026-11-19"
+    },
     "allocation": [
       {
         "pct": 100,
@@ -389,6 +445,10 @@
     "name": "IncomeSTKd 1x US Stocks & 1x Bitcoin Premium",
     "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000099122&type=485",
     "url": "https://quantifyfunds.com/optionsbasedincome/issb/",
+    "aum": {
+      "amount": 1945874,
+      "last_checked": "2026-11-19"
+    },
     "allocation": [
       {
         "pct": 100,
@@ -456,6 +516,10 @@
     "name": "Amplify BlackSwan ISWN",
     "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000069679&type=485",
     "url": "https://amplifyetfs.com/iswn/",
+    "aum": {
+      "amount": 35009404,
+      "last_checked": "2026-11-19"
+    },
     "allocation": [
       {
         "pct": 90,
@@ -472,6 +536,10 @@
     "name": "JPMorgan Managed Futures Plus",
     "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000101300&type=485",
     "url": "https://am.jpmorgan.com/us/en/asset-management/adv/products/jpmorgan-managed-futures-plus-etf-etf-shares-46654q526",
+    "aum": {
+      "amount": 121674296,
+      "last_checked": "2026-11-19"
+    },
     "allocation": [
       {
         "pct": 100,
@@ -505,6 +573,10 @@
     "name": "Kurv U.S. Large Cap TaxOptimized",
     "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000085344&type=485",
     "url": "https://www.kurvinvest.com/etf/lcto",
+    "aum": {
+      "amount": 491073,
+      "last_checked": "2026-11-19"
+    },
     "allocation": [
       {
         "pct": 100,
@@ -542,6 +614,10 @@
     "name": "Man Active Trend Enhanced",
     "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000097969&type=485",
     "url": "https://www.man.com/products/man-active-trend-enhanced-etf",
+    "aum": {
+      "amount": 39776072,
+      "last_checked": "2026-11-19"
+    },
     "allocation": [
       {
         "pct": 100,
@@ -558,6 +634,10 @@
     "name": "WisdomTree Efficient U.S. Plus International Equity",
     "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000101800&type=485",
     "url": "https://www.wisdomtree.com/us/products/capital-efficient/ntsd",
+    "aum": {
+      "amount": 51882044,
+      "last_checked": "2026-11-19"
+    },
     "allocation": [
       {
         "pct": 90,
@@ -574,6 +654,10 @@
     "name": "WisdomTree Emerging Markets Efficient Core",
     "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000071810&type=485",
     "url": "https://www.wisdomtree.com/investments/etfs/capital-efficient/ntse",
+    "aum": {
+      "amount": 52130740,
+      "last_checked": "2026-11-19"
+    },
     "allocation": [
       {
         "pct": 90,
@@ -590,6 +674,10 @@
     "name": "WisdomTree International Efficient Core",
     "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000071808&type=485",
     "url": "https://www.wisdomtree.com/us/products/capital-efficient/ntsi",
+    "aum": {
+      "amount": 487991040,
+      "last_checked": "2026-11-19"
+    },
     "allocation": [
       {
         "pct": 90,
@@ -606,6 +694,10 @@
     "name": "WisdomTree U.S. Efficient Core",
     "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000061867&type=485",
     "url": "https://www.wisdomtree.com/us/products/capital-efficient/ntsx",
+    "aum": {
+      "amount": 1342864260,
+      "last_checked": "2026-11-19"
+    },
     "allocation": [
       {
         "pct": 90,
@@ -656,6 +748,10 @@
     "name": "PlanRock Equity Plus Alternatives",
     "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000083335&type=485",
     "url": "https://www.planrockfunds.com/fund-details",
+    "aum": {
+      "amount": 13252444,
+      "last_checked": "2026-11-19"
+    },
     "allocation": [
       {
         "pct": 100,
@@ -672,6 +768,10 @@
     "name": "RPAR Risk Parity",
     "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000066941&type=485",
     "url": "https://www.rparetf.com/rpar",
+    "aum": {
+      "amount": 552057920,
+      "last_checked": "2026-11-19"
+    },
     "allocation": [
       {
         "pct": 35,
@@ -700,6 +800,10 @@
     "name": "Return Stacked Bonds & Merger Arbitrage",
     "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000089361&type=485",
     "url": "https://www.returnstackedetfs.com/rsba-return-stacked-bonds-merger-arbitrage/",
+    "aum": {
+      "amount": 52713520,
+      "last_checked": "2026-11-19"
+    },
     "allocation": [
       {
         "pct": 100,
@@ -716,6 +820,10 @@
     "name": "Return Stacked Bonds & Managed Futures",
     "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000079702&type=485",
     "url": "https://www.returnstackedetfs.com/rsbt-return-stacked-bonds-managed-futures/",
+    "aum": {
+      "amount": 162133888,
+      "last_checked": "2026-11-19"
+    },
     "allocation": [
       {
         "pct": 100,
@@ -732,6 +840,10 @@
     "name": "Return Stacked Bonds & Futures Yield",
     "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000084638&type=485",
     "url": "https://www.returnstackedetfs.com/rsby-return-stacked-bonds-futures-yield/",
+    "aum": {
+      "amount": 47375528,
+      "last_checked": "2026-11-19"
+    },
     "allocation": [
       {
         "pct": 100,
@@ -765,6 +877,10 @@
     "name": "Return Stacked International Stocks & Managed Futures",
     "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000103919&type=485",
     "url": "https://www.returnstackedetfs.com/rsit-international-stocks-managed-futures/",
+    "aum": {
+      "amount": 78801344,
+      "last_checked": "2026-11-19"
+    },
     "allocation": [
       {
         "pct": 100,
@@ -781,6 +897,10 @@
     "name": "Return Stacked Global Stocks & Bonds",
     "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000079703&type=485",
     "url": "https://www.returnstackedetfs.com/rssb-return-stacked-global-stocks-bonds/",
+    "aum": {
+      "amount": 497351296,
+      "last_checked": "2026-11-19"
+    },
     "allocation": [
       {
         "pct": 100,
@@ -797,6 +917,10 @@
     "name": "Return Stacked U.S. Stocks & Managed Futures",
     "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000081720&type=485",
     "url": "https://www.returnstackedetfs.com/rsst-return-stacked-us-stocks-managed-futures/",
+    "aum": {
+      "amount": 572880260,
+      "last_checked": "2026-11-19"
+    },
     "allocation": [
       {
         "pct": 100,
@@ -813,6 +937,10 @@
     "name": "Return Stacked U.S. Stocks & Gold/Bitcoin",
     "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000091930&type=485",
     "url": "https://www.returnstackedetfs.com/rssx-return-stacked-us-stocks-gold-bitcoin/",
+    "aum": {
+      "amount": 100249088,
+      "last_checked": "2026-11-19"
+    },
     "allocation": [
       {
         "pct": 100,
@@ -833,6 +961,10 @@
     "name": "Return Stacked U.S. Stocks & Futures Yield",
     "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000084639&type=485",
     "url": "https://www.returnstackedetfs.com/rssy-return-stacked-us-stocks-futures-yield/",
+    "aum": {
+      "amount": 103568000,
+      "last_checked": "2026-11-19"
+    },
     "allocation": [
       {
         "pct": 100,
@@ -866,6 +998,10 @@
     "name": "Synera Funds Takumi+",
     "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000104922&type=485",
     "url": "https://synerafunds.com/",
+    "aum": {
+      "amount": 82267720,
+      "last_checked": "2026-11-19"
+    },
     "allocation": [
       {
         "pct": 100,
@@ -882,6 +1018,10 @@
     "name": "PIMCO US Stocks PLUS Active Bond",
     "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000097224&type=485",
     "url": "https://www.pimco.com/us/en/investments/etf/pimco-us-stocks-plus-active-bond-exchange-traded-fund/usetf-usd",
+    "aum": {
+      "amount": 90512568,
+      "last_checked": "2026-11-19"
+    },
     "allocation": [
       {
         "pct": 100,
@@ -898,6 +1038,10 @@
     "name": "Direxion U.S. 500 Plus",
     "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000097936&type=485",
     "url": "https://www.direxion.com/product/us-500-plus-etf",
+    "aum": {
+      "amount": 18920372,
+      "last_checked": "2026-11-19"
+    },
     "allocation": [
       {
         "pct": 100,
@@ -914,6 +1058,10 @@
     "name": "Amplify BlackSwan Growth & Treasury Core",
     "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000063059&type=485",
     "url": "https://amplifyetfs.com/swan/",
+    "aum": {
+      "amount": 152472096,
+      "last_checked": "2026-11-19"
+    },
     "allocation": [
       {
         "pct": 90,
@@ -930,6 +1078,10 @@
     "name": "UPAR Ultra Risk Parity",
     "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000074863&type=485",
     "url": "https://www.rparetf.com/upar",
+    "aum": {
+      "amount": 54623152,
+      "last_checked": "2026-11-19"
+    },
     "allocation": [
       {
         "pct": 49,
@@ -958,6 +1110,10 @@
     "name": "WisdomTree Efficient Rare Earth Plus Strategic Metals",
     "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000101802&type=485",
     "url": "https://www.wisdomtree.com/us/products/capital-efficient/wdig",
+    "aum": {
+      "amount": 3309523,
+      "last_checked": "2026-11-19"
+    },
     "allocation": [
       {
         "pct": 90,
@@ -974,6 +1130,10 @@
     "name": "WisdomTree Efficient Long/Short U.S. Smallcap Equity",
     "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000109280&type=485",
     "url": "https://www.wisdomtree.com/us/products/capital-efficient/wsls",
+    "aum": {
+      "amount": 2456438,
+      "last_checked": "2026-11-19"
+    },
     "allocation": [
       {
         "pct": 90,
@@ -990,6 +1150,10 @@
     "name": "WisdomTree Global Alpha",
     "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000109282&type=485",
     "url": "https://www.wisdomtree.com/us/products/capital-efficient/wtal",
+    "aum": {
+      "amount": 3547109,
+      "last_checked": "2026-11-19"
+    },
     "allocation": [
       {
         "pct": 90,
@@ -1023,6 +1187,10 @@
     "name": "WisdomTree Inflation Plus",
     "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000092513&type=485",
     "url": "https://www.wisdomtree.com/us/products/alternative/wtip",
+    "aum": {
+      "amount": 27852542,
+      "last_checked": "2026-11-19"
+    },
     "allocation": [
       {
         "pct": 85,
@@ -1055,6 +1223,10 @@
     "name": "WisdomTree Efficient Long/Short U.S. Equity",
     "filing": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=S000098570&type=485",
     "url": "https://www.wisdomtree.com/us/products/capital-efficient/wtls",
+    "aum": {
+      "amount": 19553214,
+      "last_checked": "2026-11-19"
+    },
     "allocation": [
       {
         "pct": 90,

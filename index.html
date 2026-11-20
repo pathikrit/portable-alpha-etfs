@@ -292,8 +292,9 @@
       // so that it can be used in a portfolio. The position does not change with the table filters.
       const withSymbols = (etfs) => etfs.map((etf, i) => ({ ...etf, symbol: etf.ticker || `TBD-${i + 1}` }));
 
-      const DEFAULT_PORTFOLIO = ['RSSX', 'RSBT', 'WTLS', 'GMIX', 'AVUV'].map((ticker) => ({ ticker, weight: 20 }));
       // Portfolio in the URL: #p=RSSX:40,RSBT:30,AVUV:20,IBIT:10:crypto (the third part is a picked asset class)
+      // The default is that text. A page that is opened with no portfolio gets it in its URL.
+      const DEFAULT_PORTFOLIO = 'RSSX:20,RSBT:20,WTLS:20,GMIX:20,AVUV:20:small';
       const encodePortfolio = (holdings) => holdings.filter((h) => h.ticker)
         .map((h) => [h.ticker, Number(h.weight) || 0, pickedClass(h.cls)].filter((part) => part !== undefined).join(':')).join(',');
       function decodePortfolio(text) {
@@ -329,7 +330,7 @@
 
     // All UI state lives in the URL hash, so that each view has a link:
     // #p=RSSX:40,RSBT:30&q=gold&closed=1&upcoming=0&lev=1.25-2&collapsed=0,2&theme=dark
-    // A value that is the default is not written.
+    // A value that is the default is not written, except the portfolio.
     const hashParams = () => new URLSearchParams(location.hash.slice(1));
     function setHashParam(key, value) {
       const params = hashParams();
@@ -500,6 +501,7 @@
 
     let nextId = 1;
     const withIds = (holdings) => holdings.map((h) => ({ ...h, id: nextId++ }));
+    const decodeHoldings = (text) => { const list = PA.decodePortfolio(text); return list && withIds(list); };
 
     function Portfolio({ etfs, holdings, setHoldings }) {
       const items = useMemo(
@@ -532,7 +534,7 @@
       const result = useMemo(() => PA.exposures(holdings, etfs), [holdings, etfs]);
       const weightOk = Math.abs(result.weight - 100) < 0.05;
       const overweight = result.weight > 100.05;
-      const isDefault = PA.encodePortfolio(holdings) === PA.encodePortfolio(PA.DEFAULT_PORTFOLIO);
+      const isDefault = PA.encodePortfolio(holdings) === PA.DEFAULT_PORTFOLIO;
 
       return html`
         <${Card} padding=${5}>
@@ -564,7 +566,7 @@
                   </span>
                   <span className="red">
                     <${Button} size="sm" variant="primary" label="Reset" icon=${html`<${Fa} name="rotate-left" />`}
-                      isDisabled=${isDefault} onClick=${() => setHoldings(withIds(PA.DEFAULT_PORTFOLIO))} />
+                      isDisabled=${isDefault} onClick=${() => setHoldings(decodeHoldings(PA.DEFAULT_PORTFOLIO))} />
                   </span>
                 <//>
                 ${!weightOk && !overweight && html`<div><${Badge} variant="error" icon=${html`<${Fa} name="triangle-exclamation" />`}
@@ -709,9 +711,7 @@
     }
 
     function App({ etfs }) {
-      const [holdings, setHoldings] = useHashState('p', withIds(PA.DEFAULT_PORTFOLIO),
-        (text) => { const list = PA.decodePortfolio(text); return list && withIds(list); },
-        (list) => { const text = PA.encodePortfolio(list); return text === PA.encodePortfolio(PA.DEFAULT_PORTFOLIO) ? '' : text; });
+      const [holdings, setHoldings] = useHashState('p', decodeHoldings(PA.DEFAULT_PORTFOLIO), decodeHoldings, PA.encodePortfolio);
 
       return html`
         <${VStack} gap=${5}>

@@ -72,6 +72,7 @@ Read this before you change `index.html` or `etf.json`.
   gold commodities and miners; purple managed futures, carry and macro; red crypto; gray for a ticker not in the map.
 - `WHAT` has only what a fund in `etf.json` holds (a test checks it). Do not add a ticker to `WHAT` to give it
   a colour in a portfolio: AVUV was there for the default portfolio, and the owner expected it to be gray.
+  The default portfolio gives AVUV its class the way a user does, with a pick in the URL text (`AVUV:20:small`).
 - A ticker that is in neither `etf.json` nor `WHAT` is gray. Its dot in the exposure table is a button
   that opens a menu of the asset classes (`CLASS_NAME`). The pick is the third part of the holding
   in the URL, `IBIT:20:crypto`, and it is dropped when the holding's ticker changes.
@@ -82,7 +83,9 @@ Read this before you change `index.html` or `etf.json`.
 
 **State**
 - All UI state is in the URL hash: holdings, search, each toggle, the leverage range, collapsed groups, theme.
-  Defaults are not written, so the plain URL stays clean.
+  Defaults are not written, with one exception: the portfolio. `DEFAULT_PORTFOLIO` is URL text
+  (`RSSX:20,...,AVUV:20:small`), and a page opened with no `p` gets it in its URL. No code compares
+  holdings with a default to decide what to write.
 
 **Chart**
 - The pie is the main visual: large, with the asset and "% of gross" inside each slice.

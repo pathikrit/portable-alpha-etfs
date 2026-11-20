@@ -157,15 +157,19 @@ test('a fund that has no ticker gets a TBD symbol that works in a portfolio', ()
   assert.deepEqual(Object.fromEntries(result.rows.map((row) => [row.what, row.pct])), { VT: 50, Bonds: 50 });
 });
 
-test('the default portfolio is 20% each of 5 funds, and its listed funds are in etf.json', () => {
-  assert.equal(PA.encodePortfolio(PA.DEFAULT_PORTFOLIO), 'RSSX:20,RSBT:20,WTLS:20,GMIX:20,AVUV:20');
+test('the default portfolio is URL text: 20% each of 5 funds, and its listed funds are in etf.json', () => {
+  assert.equal(PA.DEFAULT_PORTFOLIO, 'RSSX:20,RSBT:20,WTLS:20,GMIX:20,AVUV:20:small');
+  const holdings = PA.decodePortfolio(PA.DEFAULT_PORTFOLIO);
+  // The page compares the encoded holdings with this text to know that nothing has changed.
+  assert.equal(PA.encodePortfolio(holdings), PA.DEFAULT_PORTFOLIO);
   const tickers = new Set(etfs.map((etf) => etf.ticker));
   for (const ticker of ['RSSX', 'RSBT', 'WTLS', 'GMIX']) assert.ok(tickers.has(ticker), ticker);
-  const result = PA.exposures(PA.DEFAULT_PORTFOLIO, PA.withSymbols(etfs));
+  const result = PA.exposures(holdings, PA.withSymbols(etfs));
   assert.equal(result.weight, 100);
-  // AVUV is not in etf.json and no fund holds it, so it is gray until the user picks its asset class.
+  // AVUV is not in etf.json and no fund holds it. Its small-cap class is a pick in the URL, like any user's pick.
   const avuv = result.rows.find((row) => row.what === 'AVUV');
-  assert.deepEqual([avuv.color, avuv.pickable], ['other', true]);
+  assert.deepEqual([avuv.color, avuv.pickable], ['small', true]);
+  assert.equal(PA.colorOf('AVUV'), 'other');
 });
 
 test('WHAT has only what a fund holds: no other ticker has a color of its own', () => {

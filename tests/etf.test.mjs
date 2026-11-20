@@ -116,6 +116,11 @@ test('categories come from the allocation', () => {
   assert.equal(PA.categoryOf(fund([100, 'SPY'], [100, 'MF'])), PA.CATEGORIES[2]);
   assert.equal(PA.categoryOf(fund([100, 'GOVT'], [100, 'Carry'])), PA.CATEGORIES[2]);
   assert.equal(PA.categoryOf(fund([100, 'SPY'], [80, 'Gold'], [20, 'BTC'])), PA.CATEGORIES[3]);
+  // The group follows the asset class in WHAT: there is no second list of labels to keep in step.
+  for (const [what, [, cls]] of Object.entries(PA.WHAT)) {
+    const expected = cls === 'crypto' ? PA.CATEGORIES[3] : cls === 'futures' || what === 'CTA' ? PA.CATEGORIES[2] : PA.CATEGORIES[1];
+    assert.equal(PA.categoryOf(fund([100, what], [50, 'SPY'])), expected, what);
+  }
 });
 
 test('portfolio exposure: 40% RSSX + 30% RSBT + 30% AVUV', () => {

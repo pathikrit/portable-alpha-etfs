@@ -204,13 +204,12 @@
         BTC: ['Bitcoin', 'crypto'],
         ETH: ['Ether', 'crypto'],
       };
-      const CRYPTO = new Set(['BTC', 'ETH']);
-      // The table group does not come from the color: CTA has the commodity color but is in Managed Futures.
-      const MANAGED_FUTURES = new Set(['MF', 'CTA', 'Carry', 'DBMF', 'AHLT', 'LCSIX', 'Macro']);
-      const isManagedFutures = (what) => MANAGED_FUTURES.has(what);
-
       const hoverText = (what) => (WHAT[what] || [what])[0];
       const colorOf = (what) => (WHAT[what] || [what, 'other'])[1];
+      // The table group of a fund comes from the asset classes of its parts. The one exception is the owner's choice:
+      // CTA has the commodity color but counts as managed futures.
+      const GROUP_AS = { CTA: 'futures' };
+      const groupClass = (what) => GROUP_AS[what] || colorOf(what);
       // Order of the asset classes in the exposure table and the pie. Neighbors have similar hues:
       // blues, purples, red, gold, green, gray.
       const COLOR_ORDER = ['large', 'global', 'small', 'longshort', 'futures', 'crypto', 'commodity', 'bond', 'other'];
@@ -233,9 +232,9 @@
 
       // The category is not stored in etf.json. It comes from the allocation.
       function categoryOf(etf) {
-        const whats = etf.allocation.map((a) => a.what);
-        if (whats.some((w) => CRYPTO.has(w))) return CATEGORIES[3];
-        if (whats.some(isManagedFutures)) return CATEGORIES[2];
+        const classes = etf.allocation.map((a) => groupClass(a.what));
+        if (classes.includes('crypto')) return CATEGORIES[3];
+        if (classes.includes('futures')) return CATEGORIES[2];
         return leverage(etf) > 1.75 ? CATEGORIES[0] : CATEGORIES[1];
       }
 
@@ -402,7 +401,7 @@
         const invested = Math.min(result.weight, 100) / 100;
         const gap = 100 - invested * 100;
         const data = {
-          labels: [...result.rows.map((r) => r.what), 'Unallocated'],
+          labels: [...result.rows.map((r) => r.what), ''],
           datasets: [{
             data: [...result.rows.map((r) => r.normalized * invested), gap],
             nav: [...result.rows.map((r) => r.pct), 0],
@@ -434,7 +433,8 @@
                   color: ink, textAlign: 'center', font: { weight: 600, size: 13, family: 'Figtree, sans-serif' },
                 },
                 tooltip: {
-                  filter: (item) => item.label !== 'Unallocated',
+                  // The last slice is the cash part of the circle. It has no tooltip.
+                  filter: (item) => item.dataIndex < item.chart.data.labels.length - 1,
                   callbacks: {
                     title: (items) => items.map((item) => PA.hoverText(item.label) === item.label ? item.label : `${item.label}: ${PA.hoverText(item.label)}`),
                     label: (item) => [` ${PA.formatPct(item.dataset.nav[item.dataIndex])} of NAV`, ` ${PA.formatPct(item.dataset.share[item.dataIndex])} of gross`],

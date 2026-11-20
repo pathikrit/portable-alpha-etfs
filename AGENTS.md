@@ -75,8 +75,10 @@ Read this before you change `index.html` or `etf.json`.
 - A ticker that is in neither `etf.json` nor `WHAT` is gray. Its dot in the exposure table is a button
   that opens a menu of the asset classes (`CLASS_NAME`). The pick is the third part of the holding
   in the URL, `IBIT:20:crypto`, and it is dropped when the holding's ticker changes.
-- The table group does not come from the colour. CTA has the commodity colour (the owner's choice)
-  but counts as Managed Futures.
+- The table group of a fund comes from the asset classes of its parts (`categoryOf`). There is one exception,
+  in `GROUP_AS`: CTA has the commodity colour (the owner's choice) but counts as Managed Futures.
+- **No special cases.** Do not hard-code a ticker or a label to make one view look right. If a rule gives
+  a result that looks wrong, say so and ask; do not add an exception. The owner asked for an audit after AVUV.
 
 **State**
 - All UI state is in the URL hash: holdings, search, each toggle, the leverage range, collapsed groups, theme.

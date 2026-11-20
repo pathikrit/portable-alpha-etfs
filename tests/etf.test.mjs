@@ -186,3 +186,9 @@ test('the build writes etf.json into the page', () => {
   assert.equal(JSON.stringify(JSON.parse(baked)), JSON.stringify(etfs));
   assert.ok(!/fetch\(/.test(built), 'the page does not fetch its data');
 });
+
+test('AUM shows in millions with 2 decimals', () => {
+  assert.equal(PA.formatAum(65420000), '$65.42M');
+  assert.equal(PA.formatAum(1828178690), '$1,828.18M');
+  assert.equal(PA.formatAum(458700), '$0.46M');
+});

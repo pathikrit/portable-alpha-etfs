@@ -97,8 +97,8 @@ Read this before you change `index.html` or `etf.json`.
 - **Measure, do not judge by eye.** For "nothing cut off" claims, check in the browser at several widths
   (768, 1024, 1325, 1464, 1920): `scrollWidth > clientWidth` on cells and badges, row heights, table scroll.
   A fix verified at one width broke at the owner's width more than once.
-- **The phone layout is CSS only.** Below 700px a media query in `index.html` turns each ETF row into a block
-  (ticker and leverage, then name, then allocation) and hides the `#` column. Do not add a second component tree
+- **The phone layout is CSS only.** Below 760px a media query in `index.html` turns each ETF row into a block
+  (ticker, AUM and leverage, then name, then allocation) and hides the `#` column. Do not add a second component tree
   for phones. Check 320, 360 and 390 wide as well as the desktop widths.
 - **Check the narrow layout too.** A media query quietly brought back the wide ticker field after it was fixed.
 - **Test with real data.** Placeholder rows with the same name gave duplicate row keys and a false grouping bug.
